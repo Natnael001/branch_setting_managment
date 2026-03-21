@@ -1,0 +1,107 @@
+﻿@model BranchSettings
+
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+<div class="branch-settings-form">
+    <!-- Source Number -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-hashtag"></i> Source Number</label>
+        </div>
+        <div class="form-input-cell">
+                <input type="text" id="sourceNumber" class="form-control" name="SourceNumber" value="@Model.SourceNumber" placeholder="Enter source number" />
+        </div>
+    </div>
+
+    <!-- Client ID -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-id-card"></i> Client ID</label>
+        </div>
+        <div class="form-input-cell">
+                <input type="text" id="clientId" class="form-control" name="ClientId" value="@Model.ClientId" placeholder="Enter client ID" />
+        </div>
+    </div>
+
+    <!-- Client Secret -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-lock"></i> Client Secret</label>
+        </div>
+        <div class="form-input-cell">
+                <input type="password" id="clientSecret" class="form-control" name="ClientSecret" value="@Model.ClientSecret" placeholder="Enter client secret" />
+        </div>
+    </div>
+
+    <!-- API Key -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-key"></i> API Key</label>
+        </div>
+        <div class="form-input-cell">
+                <input type="text" id="apiKey" class="form-control" name="ApiKey" value="@Model.ApiKey" placeholder="Enter API key" />
+        </div>
+    </div>
+
+    <!-- Digital Certificate -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-certificate"></i> Digital Certificate</label>
+        </div>
+        <div class="form-input-cell">
+            @if (!string.IsNullOrEmpty(Model.DigitalCertificatePath))
+            {
+                <div class="current-file">
+                    <i class="fas fa-check-circle"></i> Current: @System.IO.Path.GetFileName(Model.DigitalCertificatePath)
+                </div>
+            }
+            <div class="file-field">
+                    <input type="file" id="certFile" name="DigitalCertificate" class="form-control-file" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Private Key -->
+    <div class="form-row">
+        <div class="form-label-cell">
+            <label><i class="fas fa-lock"></i> Private Key</label>
+        </div>
+        <div class="form-input-cell">
+            @if (!string.IsNullOrEmpty(Model.PrivateKeyPath))
+            {
+                <div class="current-file">
+                    <i class="fas fa-check-circle"></i> Current: @System.IO.Path.GetFileName(Model.PrivateKeyPath)
+                </div>
+            }
+            <div class="file-field">
+                <input type="file" id="keyFile" name="PrivateKey" class="form-control-file" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+</style>
+
+<script>
+    // Make browse buttons functional
+    document.querySelectorAll('.btn-small').forEach(button => {
+        button.addEventListener('click', function() {
+            const fileInput = this.closest('.file-field').querySelector('input[type="file"]');
+            if (fileInput) {
+                fileInput.click();
+            }
+        });
+    });
+
+    // Update file name display when selected
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const fileName = this.files[0]?.name || '';
+            if (fileName) {
+                // You can optionally update a display element here
+                console.log('File selected:', fileName);
+            }
+        });
+    });
+</script>

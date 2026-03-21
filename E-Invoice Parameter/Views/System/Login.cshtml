@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="~/css/verification.css" asp-append-version="true">
+
+    <div class="verification-wrapper">
+        <div class="company-header">
+            <div class="company-name">
+                <i class="fas fa-cloud"></i>
+                RED CLOUD
+            </div>
+        </div>
+        <div class="error-message" id="errorMessage" style="display: @(ViewBag.ErrorMessage != null ? "flex" : "none");">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText">@ViewBag.ErrorMessage</span>
+        </div>
+
+        <div class="content-box">
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Invalid username or password.</span>
+            </div>
+
+            <div class="verify-title">
+                <i class="fas fa-lock"></i>
+                Please log in to continue
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username" autofocus>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password">
+            </div>
+
+            <div class="checkbox-group">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="rememberMe">
+                    <span class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span class="remember-text">Remember me</span>
+                </label>
+            </div>
+
+            <button class="btn-verify" onclick="login()" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <!-- Anti-forgery token -->
+            <input name="__RequestVerificationToken" type="hidden" value="@token" />
+        </div>
+    </div>
+
+
+    <script src="~/js/login.js" asp-append-version="true"></script>

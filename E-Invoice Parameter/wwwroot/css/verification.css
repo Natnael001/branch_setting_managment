@@ -1,0 +1,268 @@
+﻿* {
+    box-sizing: border-box;
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+}
+
+body {
+    background: white;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.verification-wrapper {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.company-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.company-name {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e2a3a;
+    letter-spacing: 0.5px;
+}
+
+    .company-name i {
+        color: #e65c00;
+        margin-right: 8px;
+        font-size: 32px;
+    }
+
+.content-box {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 35px 30px;
+    border: 1px solid #e5e9f0;
+}
+
+.verify-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e2a3a;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+    .verify-title i {
+        color: #e65c00;
+        margin-right: 8px;
+    }
+
+.verify-text {
+    text-align: center;
+    color: #6c7a8d;
+    font-size: 14px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e5e9f0;
+    padding-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #495569;
+        margin-bottom: 8px;
+        letter-spacing: 0.3px;
+    }
+
+        .form-group label i {
+            color: #e65c00;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #1e2a3a;
+    background: white;
+    transition: all 0.2s;
+}
+
+    .form-control:focus {
+        outline: none;
+        border-color: #e65c00;
+        box-shadow: 0 0 0 3px rgba(230, 92, 0, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #9aa6b5;
+        font-size: 14px;
+    }
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495569;
+    user-select: none;
+}
+
+    .checkbox-container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+.checkmark {
+    height: 20px;
+    width: 20px;
+    background: white;
+    border: 2px solid #d0d5dd;
+    border-radius: 4px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+    border-color: #e65c00;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+    background: #e65c00;
+    border-color: #e65c00;
+}
+
+.checkmark i {
+    color: white;
+    font-size: 12px;
+    display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark i {
+    display: block;
+}
+
+.btn-verify {
+    width: 100%;
+    padding: 14px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    border: none;
+    background: #e65c00;
+    color: white;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+}
+
+    .btn-verify i {
+        font-size: 16px;
+    }
+
+    .btn-verify:hover {
+        background: #cc5200;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+.error-message {
+    background: #fff2eb;
+    border: 1px solid #ffb399;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    color: #cc5200;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    display: none;
+}
+
+    .error-message i {
+        color: #e65c00;
+        font-size: 16px;
+    }
+
+    .error-message.show {
+        display: flex;
+    }
+
+.additional-options {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.help-link {
+    color: #6c7a8d;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+}
+
+    .help-link i {
+        color: #e65c00;
+        font-size: 12px;
+    }
+
+    .help-link:hover {
+        color: #e65c00;
+    }
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        padding: 15px;
+    }
+
+    .content-box {
+        padding: 25px 20px;
+    }
+
+    .company-name {
+        font-size: 24px;
+    }
+}

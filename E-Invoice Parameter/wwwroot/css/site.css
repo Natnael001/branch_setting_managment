@@ -1,0 +1,342 @@
+.branch-settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef2f6;
+}
+
+    .form-row:last-child {
+        border-bottom: none;
+    }
+
+.form-label-cell {
+    width: 35%;
+    padding-top: 8px;
+}
+
+    .form-label-cell label {
+        font-weight: 600;
+        color: #495569;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .form-label-cell label i {
+            color: #e65c00;
+            font-size: 14px;
+            width: 18px;
+        }
+
+.form-input-cell {
+    flex: 1;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #1e2a3a;
+    background: white;
+    transition: all 0.2s;
+}
+
+    .form-control:focus {
+        outline: none;
+        border-color: #e65c00;
+        box-shadow: 0 0 0 3px rgba(230, 92, 0, 0.1);
+    }
+
+    .form-control[type="password"] {
+        font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+/* Current file indicator */
+.current-file {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .current-file i {
+        color: #16a34a;
+    }
+
+/* File field - matching theme */
+.file-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-control-file {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #1e2a3a;
+    background: white;
+}
+
+    .form-control-file::file-selector-button {
+        padding: 6px 12px;
+        margin-right: 10px;
+        background: #f8fafd;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        color: #344767;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .form-control-file::file-selector-button:hover {
+            background: #f0f3f8;
+        }
+
+.btn-small {
+    padding: 9px 16px;
+    background: #f8fafd;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #344767;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+    .btn-small i {
+        color: #e65c00;
+    }
+
+    .btn-small:hover {
+        background: #f0f3f8;
+        transform: translateY(-1px);
+    }
+
+/* Responsive */
+@@media screen and (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label-cell {
+        width: 100%;
+        padding-top: 0;
+    }
+
+    .file-field {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-small {
+        justify-content: center;
+    }
+}
+
+
+/* Reset all default margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header styling */
+.navbar-custom {
+    background: white;
+    border-bottom: 2px solid #e5e9f0;
+    padding: 15px 30px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.navbar-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e2a3a;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .navbar-brand i {
+        color: #e65c00;
+        font-size: 24px;
+    }
+
+    .navbar-brand:hover {
+        color: #e65c00;
+    }
+
+/* Logout button styling */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #e65c00;
+    border-radius: 4px;
+    color: #e65c00;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+    .logout-btn i {
+        color: #e65c00;
+        font-size: 14px;
+    }
+
+    .logout-btn:hover {
+        background: #e65c00;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+        .logout-btn:hover i {
+            color: white;
+        }
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-name {
+    color: #495569;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .user-name i {
+        color: #e65c00;
+    }
+
+/* Main content - no gaps */
+main {
+    flex: 1;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Remove all Bootstrap container default spacing */
+.container {
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Footer - no gaps */
+footer {
+    margin-top: 0 !important;
+    padding: 15px 0 !important;
+    background: white;
+    border-top: 1px solid #e5e9f0;
+    flex-shrink: 0;
+}
+
+    footer .container {
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .navbar-custom {
+        padding: 12px 20px;
+    }
+
+    .navbar-brand {
+        font-size: 18px;
+    }
+
+    .logout-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .user-name {
+        font-size: 12px;
+    }
+
+    .container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    footer .container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .navbar-brand span {
+        display: none;
+    }
+
+    .user-info {
+        gap: 10px;
+    }
+
+    .container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+}
