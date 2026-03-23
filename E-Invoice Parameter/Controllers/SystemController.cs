@@ -163,6 +163,11 @@ public class SystemController : Controller
     [AllowAnonymous]
     public IActionResult Login()
     {
+        if (User.Identity != null && User.Identity.IsAuthenticated && HttpContext.Session.GetInt32("UserId") != null)
+        {
+            return RedirectToAction("Parameters");
+        }
+
         var tin = TempData["VerifiedTin"]?.ToString();
         if (string.IsNullOrEmpty(tin))
         {
@@ -187,6 +192,7 @@ public class SystemController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult CreateTestUser()
     {
         try
@@ -201,7 +207,7 @@ public class SystemController : Controller
                 _logger.LogInformation("Removed {Count} existing admin users", existingUsers.Count);
             }
 
-            var (hash, salt) = PasswordHelper.HashPassword("P@$$123");
+            var (hash, salt) = PasswordHelper.HashPassword("P@$$123", "admin");
 
             _logger.LogInformation("Generated hash: {Hash}, salt: {Salt}", hash, salt);
 
@@ -241,12 +247,15 @@ public class SystemController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult TestPassword(string username = "admin", string password = "P@$$123")
     {
         try
         {
             var results = new List<object>();
-            var users = _context.Users.Where(u => u.UserName == username).ToList();
+            var users = _context.Users
+                .Where(u => u.UserName.ToLower() == username.ToLower())
+                .ToList();
 
             if (!users.Any())
             {
@@ -268,12 +277,14 @@ public class SystemController : Controller
                         continue;
                     }
 
-                    bool valid = PasswordHelper.VerifyPassword(password, user.PasswordHash, user.Salt);
+                    bool valid = PasswordHelper.VerifyPassword(password, user.UserName, user.PasswordHash, user.Salt);
+
                     results.Add(new
                     {
                         UserId = user.Id,
                         Username = user.UserName,
-                        PasswordValid = valid
+                        PasswordValid = valid,
+                        HashAlgorithm = user.Salt.Length == 128 ? "SHA-512 (New)" : "Legacy/Unknown"
                     });
                 }
                 catch (Exception ex)
@@ -294,6 +305,7 @@ public class SystemController : Controller
             return Json(new { error = ex.Message });
         }
     }
+
 
     [HttpGet]
     public IActionResult DebugTin(string tin)
@@ -342,12 +354,13 @@ public class SystemController : Controller
             }
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == model.Username && u.IsActive);
+                .FirstOrDefaultAsync(u => u.UserName.ToLower() == model.Username.ToLower() && u.IsActive);
 
-            if (user == null || !PasswordHelper.VerifyPassword(model.Password, user.PasswordHash, user.Salt))
+            if (user == null || !PasswordHelper.VerifyPassword(model.Password, model.Username, user.PasswordHash, user.Salt))
             {
                 return Json(new { success = false, message = "Invalid username or password." });
             }
+
             user.LastLoginAt = DateTime.Now;
             user.FirstLoginAt ??= DateTime.Now;
             user.LoggedInStatus = 1390;
@@ -357,7 +370,6 @@ public class SystemController : Controller
         {
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
             new Claim("UserId", user.Id.ToString()),
-
         };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -857,6 +869,7 @@ public class SystemController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> DebugLogin(string username = "admin", string password = "P@$$123")
     {
         try
@@ -876,7 +889,7 @@ public class SystemController : Controller
                 return Json(new { success = false, message = "User has null hash or salt" });
             }
 
-            bool valid = PasswordHelper.VerifyPassword(password, user.PasswordHash, user.Salt);
+            bool valid = PasswordHelper.VerifyPassword(password, user.UserName, user.PasswordHash, user.Salt);
 
             return Json(new
             {
@@ -888,11 +901,13 @@ public class SystemController : Controller
                 hashLength = user.PasswordHash.Length,
                 saltLength = user.Salt.Length,
                 hash = user.PasswordHash,
-                salt = user.Salt
+                salt = user.Salt,
+                algorithmDetected = user.Salt.Length == 128 ? "SHA-512 Hex" : "Legacy/Unknown"
             });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "DebugLogin error");
             return Json(new { success = false, error = ex.Message, stackTrace = ex.StackTrace });
         }
     }
@@ -1053,14 +1068,15 @@ public class SystemController : Controller
                 Preference = 2,
                 IsActive = true,
                 IsPerson = true,
-                CreatedOn = currentTime, 
+                CreatedOn = currentTime,
                 LastModified = currentTime
             };
 
             _context.Consignees.Add(employee);
             await _context.SaveChangesAsync();
 
-            var (hash, salt) = PasswordHelper.HashPassword(model.Password);
+            var (hash, salt) = PasswordHelper.HashPassword(model.Password, model.Username);
+
 
             var user = new User
             {
@@ -1094,7 +1110,11 @@ public class SystemController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user");
-            ModelState.AddModelError("", $"CRASH: {ex.Message} | {ex.InnerException?.Message}");
+
+            string errorMessage = ex.Message;
+            if (ex.InnerException != null) errorMessage += $" | Inner: {ex.InnerException.Message}";
+
+            ModelState.AddModelError("", $"System Error: {errorMessage}");
             await PrepareViewBag();
             return View(model);
         }
@@ -1175,13 +1195,20 @@ public class SystemController : Controller
     {
         try
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return RedirectToAction("Login");
+            var currentSessionUserId = HttpContext.Session.GetInt32("UserId");
+            if (currentSessionUserId == null) return RedirectToAction("Login");
 
             if (!IsCurrentUserAdmin())
             {
                 TempData["ErrorMessage"] = "Access denied. Administrator privileges required.";
                 return RedirectToAction("Parameters");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("UserManagement");
             }
 
             if (string.IsNullOrWhiteSpace(model.Password))
@@ -1192,33 +1219,17 @@ public class SystemController : Controller
 
             if (!ModelState.IsValid)
             {
-                var roles = await _context.ConsigneeUnits
-                    .Where(r => r.Type == 1725 && r.IsActive)
-                    .Select(r => new { r.id, r.Name })
-                    .ToListAsync();
-                ViewBag.Roles = roles;
-                ViewBag.UserId = id;
+                await PrepareViewBag(id);
                 return View(model);
-            }
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "User not found.";
-                return RedirectToAction("UserManagement");
             }
 
             var usernameExists = await _context.Users
                 .AnyAsync(u => u.Id != id && u.UserName.ToLower() == model.Username.ToLower());
+
             if (usernameExists)
             {
-                ModelState.AddModelError("Username", "Username already exists. Please choose another.");
-                var roles = await _context.ConsigneeUnits
-                    .Where(r => r.Type == 1725 && r.IsActive)
-                    .Select(r => new { r.id, r.Name })
-                    .ToListAsync();
-                ViewBag.Roles = roles;
-                ViewBag.UserId = id;
+                ModelState.AddModelError("Username", "Username already exists.");
+                await PrepareViewBag(id);
                 return View(model);
             }
 
@@ -1230,6 +1241,7 @@ public class SystemController : Controller
                 person.LastModified = DateTime.Now;
             }
 
+            bool usernameChanged = user.UserName.ToLower() != model.Username.ToLower();
             user.UserName = model.Username;
             user.IsActive = model.IsActive;
             user.Remark = model.Remark;
@@ -1237,13 +1249,20 @@ public class SystemController : Controller
 
             if (!string.IsNullOrWhiteSpace(model.Password))
             {
-                var (hash, salt) = PasswordHelper.HashPassword(model.Password);
+                var (hash, salt) = PasswordHelper.HashPassword(model.Password, model.Username);
                 user.PasswordHash = hash;
                 user.Salt = salt;
             }
+            else if (usernameChanged)
+            {
+                ModelState.AddModelError("Password", "You must provide a password if you change the username.");
+                await PrepareViewBag(id);
+                return View(model);
+            }
 
             var existingRole = await _context.UserRoleMappers
-    .FirstOrDefaultAsync(urm => urm.UserId == user.Id);
+                .FirstOrDefaultAsync(urm => urm.UserId == user.Id);
+
             if (existingRole != null)
             {
                 existingRole.RoleId = model.RoleId;
@@ -1269,16 +1288,20 @@ public class SystemController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error editing user {Id}", id);
-            ModelState.AddModelError("", $"An error occurred while updating the user: {ex.Message}");
-
-            var roles = await _context.ConsigneeUnits
-                .Where(r => r.Type == 1725 && r.IsActive)
-                .Select(r => new { r.id, r.Name })
-                .ToListAsync();
-            ViewBag.Roles = roles;
-            ViewBag.UserId = id;
+            ModelState.AddModelError("", $"Update failed: {ex.Message}");
+            await PrepareViewBag(id);
             return View(model);
         }
+    }
+
+    private async Task PrepareViewBag(int? id = null)
+    {
+        var roles = await _context.ConsigneeUnits
+            .Where(r => r.Type == 1725 && r.IsActive)
+            .Select(r => new { r.id, r.Name })
+            .ToListAsync();
+        ViewBag.Roles = roles;
+        if (id.HasValue) ViewBag.UserId = id.Value;
     }
 
 

@@ -4,51 +4,48 @@ using System.Text;
 
 public static class PasswordHelper
 {
-    public static (string hash, string salt) HashPassword(string password)
+    private const int KeySize = 64;
+    private const int Iterations = 100000;
+    private static readonly HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA512;
+
+    public static (string hash, string salt) HashPassword(string password, string username)
     {
-        if (string.IsNullOrEmpty(password))
-            throw new ArgumentException("Password cannot be null or empty");
+        if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password required");
 
-        byte[] saltBytes = new byte[16];
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            rng.GetBytes(saltBytes);
-        }
-        string salt = Convert.ToBase64String(saltBytes);
+        string normalizedUsername = username.ToLowerInvariant();
 
-        using (var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, 10000, HashAlgorithmName.SHA256))
-        {
-            byte[] hashBytes = pbkdf2.GetBytes(32);
-            string hash = Convert.ToBase64String(hashBytes);
-            return (hash, salt);
-        }
+        byte[] saltBytes = RandomNumberGenerator.GetBytes(KeySize);
+        byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
+            Encoding.UTF8.GetBytes(password + normalizedUsername),
+            saltBytes,
+            Iterations,
+            _hashAlgorithm,
+            KeySize
+        );
+
+        return (Convert.ToHexString(hashBytes), Convert.ToHexString(saltBytes));
     }
 
-    public static bool VerifyPassword(string password, string storedHash, string storedSalt)
+    public static bool VerifyPassword(string password, string username, string storedHash, string storedSalt)
     {
-        if (string.IsNullOrEmpty(password))
-            throw new ArgumentException("Password cannot be null or empty");
-
-        if (string.IsNullOrEmpty(storedHash))
-            throw new ArgumentException("Stored hash cannot be null or empty");
-
-        if (string.IsNullOrEmpty(storedSalt))
-            throw new ArgumentException("Stored salt cannot be null or empty");
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(storedHash) || string.IsNullOrEmpty(storedSalt))
+            return false;
 
         try
         {
-            byte[] saltBytes = Convert.FromBase64String(storedSalt);
-            byte[] hashBytes = Convert.FromBase64String(storedHash);
+            string normalizedUsername = username.ToLowerInvariant();
 
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, 10000, HashAlgorithmName.SHA256))
-            {
-                byte[] testHash = pbkdf2.GetBytes(32);
-                return Convert.ToBase64String(testHash) == storedHash;
-            }
+            byte[] saltBytes = Convert.FromHexString(storedSalt);
+            byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
+                Encoding.UTF8.GetBytes(password + normalizedUsername),
+                saltBytes,
+                Iterations,
+                _hashAlgorithm,
+                KeySize
+            );
+
+            return Convert.ToHexString(hashBytes).Equals(storedHash, StringComparison.OrdinalIgnoreCase);
         }
-        catch (FormatException ex)
-        {
-            throw new Exception("Invalid hash or salt format. Expected Base64 string.", ex);
-        }
+        catch { return false; }
     }
 }
