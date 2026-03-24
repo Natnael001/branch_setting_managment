@@ -6,13 +6,9 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/css/create-user.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/user-form.css" asp-append-version="true">
 
         <div class="container">
-            <div class="welcome-title">
-                <i class="fas fa-cloud"></i>
-                Welcome to <b>Red Cloud ICT Solutions PLC</b>
-            </div>
 
             <div class="system-header">
                 <div class="system-title">
@@ -26,119 +22,124 @@
                 </div>
             </div>
 
-            <div class="content-box">
-                @if (!ViewData.ModelState.IsValid)
-                {
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <div>@Html.ValidationSummary(false)</div>
-                    </div>
-                }
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    @Html.ValidationSummary(false)
+                </div>
+            }
 
-                <form asp-action="CreateUser" method="post" class="user-form" id="createUserForm">
-                    @Html.AntiForgeryToken()
-
-                    <div class="form-section">
-                        <h4 class="section-title">
-                            <i class="fas fa-user"></i> Employee Information
-                        </h4>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label asp-for="FirstName">First Name <span class="required-star">*</span></label>
-                                <input asp-for="FirstName" class="form-control" required />
-                                <span asp-validation-for="FirstName" class="text-danger"></span>
-                            </div>
-
-                            <div class="form-group">
-                                <label asp-for="SecondName">Second Name</label>
-                                <input asp-for="SecondName" class="form-control" />
-                                <span asp-validation-for="SecondName" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label asp-for="RoleId">Position/Role <span class="required-star">*</span></label>
-                                <select asp-for="RoleId" class="form-control" required>
-                                    <option value="">-- Select Role --</option>
-                                    @if (ViewBag.Roles != null)
-                                    {
-                                        foreach (var role in ViewBag.Roles)
-                                        {
-                                            <option value="@role.id">@role.Name</option>
-                                        }
-                                    }
-                                </select>
-                                <span asp-validation-for="RoleId" class="text-danger"></span>
-                            </div>
-                        </div>
+            <div class="main-content">
+                <div class="forms-section" style="width: 100%;">
+                    <div class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        User Information
                     </div>
 
-                    <div class="form-section">
-                        <h4 class="section-title">
-                            <i class="fas fa-lock"></i> User Account Information
-                        </h4>
+                    <div class="forms-container">
+                        <form id="createUserForm" method="post" asp-action="CreateUser">
+                            @Html.AntiForgeryToken()
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label asp-for="Username">Username <span class="required-star">*</span></label>
-                                <input asp-for="Username" class="form-control" required minlength="3" maxlength="50" />
-                                <small class="text-muted">Minimum 3 characters. Letters, numbers, dots and underscores only.</small>
-                                <span asp-validation-for="Username" class="text-danger"></span>
-                                <div id="usernameStatus" class="username-status"></div>
-                            </div>
-                        </div>
+                            <div class="form-grid">
+                                <!-- Left column -->
+                                <div class="form-column">
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                        </label>
+                                        <input asp-for="FirstName" class="form-control" required />
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label asp-for="Password">Password <span class="required-star">*</span></label>
-                                <input asp-for="Password" type="password" class="form-control" required minlength="6" />
-                                <small class="text-muted">Minimum 6 characters</small>
-                                <span asp-validation-for="Password" class="text-danger"></span>
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-user"></i> Second Name
+                                        </label>
+                                        <input asp-for="SecondName" class="form-control" />
+                                        <span asp-validation-for="SecondName" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-briefcase"></i> Position/Role <span class="required">*</span>
+                                        </label>
+                                        <select asp-for="RoleId" class="form-control" required>
+                                            <option value="">-- Select Role --</option>
+                                            @if (ViewBag.Roles != null)
+                                            {
+                                                foreach (var role in ViewBag.Roles)
+                                                {
+                                                    <option value="@role.id">@role.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="RoleId" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Right column -->
+                                <div class="form-column">
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-user-circle"></i> Username <span class="required">*</span>
+                                        </label>
+                                        <input asp-for="Username" class="form-control" required minlength="3" maxlength="50" />
+                                        <small class="text-muted">Minimum 3 characters. Letters, numbers, dots and underscores only.</small>
+                                        <span asp-validation-for="Username" class="text-danger"></span>
+                                        <div id="usernameStatus" class="username-status"></div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-lock"></i> Password <span class="required">*</span>
+                                        </label>
+                                        <input asp-for="Password" type="password" class="form-control" required minlength="6" />
+                                        <small class="text-muted">Minimum 6 characters</small>
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-lock"></i> Confirm Password <span class="required">*</span>
+                                        </label>
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" required />
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-container">
+                                            <input asp-for="IsActive" type="checkbox" checked />
+                                            <span class="checkmark"><i class="fas fa-check"></i></span>
+                                            <span class="checkbox-text"><i class="fas fa-check-circle"></i> Active</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-comment"></i> Remark
+                                        </label>
+                                        <textarea asp-for="Remark" class="form-control" rows="2" placeholder="Optional notes about this user"></textarea>
+                                        <span asp-validation-for="Remark" class="text-danger"></span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label asp-for="ConfirmPassword">Confirm Password <span class="required-star">*</span></label>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" required />
-                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-save">
+                                    <i class="fas fa-save"></i> Create User
+                                </button>
+                                <a href="@Url.Action("UserManagement")" class="btn btn-cancel">
+                                    Cancel
+                                </a>
                             </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group checkbox-group">
-                                <label class="checkbox-container">
-                                    <input asp-for="IsActive" type="checkbox" checked />
-                                    <span class="checkmark">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                    <span class="remember-text">Active</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label asp-for="Remark">Remark</label>
-                                <textarea asp-for="Remark" class="form-control" rows="3" placeholder="Optional notes about this user"></textarea>
-                                <span asp-validation-for="Remark" class="text-danger"></span>
-                            </div>
-                        </div>
+                        </form>
                     </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn-verify" id="submitBtn">
-                            <i class="fas fa-save"></i> Create User
-                        </button>
-                        <a href="@Url.Action("UserManagement")" class="btn-verify btn-cancel">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
 
-        <!-- Anti-forgery token for AJAX calls if needed -->
+        <!-- Anti-forgery token -->
         @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
         @{
             var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;

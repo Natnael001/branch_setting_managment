@@ -1,0 +1,211 @@
+﻿@using E_Invoice_Parameter.Controllers
+@model DeviceCreationViewModel
+@{
+    ViewData["Title"] = "Create New Device";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/device-form.css" asp-append-version="true">
+
+<div class="container">
+    <div class="system-header">
+        <div class="system-title">
+            <i class="fas fa-microchip"></i>
+            Create New Device
+        </div>
+        <div class="header-actions">
+            <a href="@Url.Action("Index", "Device")" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Devices
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="main-content">
+        <div class="forms-section" style="width: 100%;">
+            <div class="section-header">
+                <i class="fas fa-info-circle"></i>
+                Device Information
+            </div>
+
+            <div class="forms-container">
+                <form id="deviceForm" method="post" asp-action="Create" asp-controller="Device">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-grid">
+                        <div class="form-column">
+                            <!-- Fixed Asset Code -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-qrcode"></i> Fixed Asset Code
+                                </label>
+                                <input type="text" class="form-control"
+                                       value="@Model?.FixedAssetCode" readonly disabled />
+                                <input type="hidden" asp-for="FixedAssetCode" />  <!-- ✅ This works -->
+                                <small class="text-muted">Auto-generated</small>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="form-group">
+                                <label>Category <span class="required">*</span></label>
+                                <select asp-for="CategoryId" class="form-control" required>
+                                    <!-- ✅ Use asp-for -->
+                                    <option value="">-- Select Category --</option>
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        foreach (var cat in ViewBag.Categories)
+                                        {
+                                            <option value="@cat.Id">@cat.Description</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Device Name -->
+                            <div class="form-group">
+                                <label>Device Name <span class="required">*</span></label>
+                                <input asp-for="DeviceName" class="form-control"
+                                       placeholder="Enter device name" required />
+                                <span asp-validation-for="DeviceName" class="text-danger"></span>
+                            </div>
+
+                            <!-- Description -->
+                            @* <div class="form-group">
+                                <label>Description</label>
+                                <input asp-for="Description" class="form-control"
+                                       placeholder="Enter description" />
+                            </div> *@
+
+                            <!-- Model -->
+                            <div class="form-group">
+                                <label>Model</label>
+                                <select asp-for="Model_two" class="form-control">
+                                    <option value="">-- Select Model --</option>
+                                    @if (ViewBag.Model_two != null)
+                                    {
+                                        foreach (var mdl in ViewBag.Model_two)
+                                        {
+                                            <option value="@mdl.Id">@mdl.Description</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-column">
+                            <!-- Supplier -->
+                            @* <div class="form-group">
+                                <label>Supplier</label>
+                                <select asp-for="SupplierId" class="form-control">
+                                    <option value="">-- Select Supplier --</option>
+                                    @if (ViewBag.Suppliers != null)
+                                    {
+                                        foreach (var supp in ViewBag.Suppliers)
+                                        {
+                                            <option value="@supp.Id">@supp.Description</option>
+                                        }
+                                    }
+                                </select>
+                            </div> *@
+
+                            <!-- Connection Type -->
+                            @* <div class="form-group">
+                                <label>Connection Type</label>
+                                <select asp-for="ConnectionType" class="form-control">
+                                    <option value="">-- Select Connection Type --</option>
+                                    @if (ViewBag.ConnectionTypes != null)
+                                    {
+                                        foreach (var conn in ViewBag.ConnectionTypes)
+                                        {
+                                            <option value="@conn.Id">@conn.Description</option>
+                                        }
+                                    }
+                                </select>
+                            </div> *@
+
+                            <!-- Device Value -->
+                            @* <div class="form-group">
+                                <label>Device Value</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <select id="DevicePrefix" class="form-control" style="width: 40%;">
+                                        <option value="">Select Prefix</option>
+                                        @if (ViewBag.Prefixes != null)
+                                        {
+                                            foreach (var prefix in ViewBag.Prefixes)
+                                            {
+                                                <option value="@prefix.Description">@prefix.Description</option>
+                                            }
+                                        }
+                                    </select>
+                                    <input type="text" id="DeviceValueCode" class="form-control"
+                                           placeholder="Enter code" style="width: 60%;" />
+                                </div>
+                              ///  <input type="hidden"  />
+                                <small>Format: Prefix + Code</small>
+                            </div> *@
+
+                            <!-- Branch -->
+                            <div class="form-group">
+                                <label>Branch</label>
+                                <select asp-for="BranchId" class="form-control">
+                                    <option value="">-- Select Branch --</option>
+                                    @if (ViewBag.Branches != null)
+                                    {
+                                        foreach (var branch in ViewBag.Branches)
+                                        {
+                                            <option value="@branch.id">@branch.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Active -->
+                            <div class="checkbox-group">
+                                <label class="checkbox-container">
+                                    <input asp-for="IsActive" type="checkbox" />
+                                    <span class="checkmark"><i class="fas fa-check"></i></span>
+                                    <span>Active Device</span>
+                                </label>
+                            </div>
+
+                            <!-- Remark -->
+                            <div class="form-group">
+                                <label>Remark</label>
+                                <textarea asp-for="Remark" class="form-control" rows="2"
+                                          placeholder="Optional notes"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-save"></i> Save Device
+                        </button>
+                        <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+            
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Device Value concatenation
+        $('#DevicePrefix, #DeviceValueCode').on('change input', function() {
+            var prefix = $('#DevicePrefix').val() || '';
+            var code = $('#DeviceValueCode').val() || '';
+            $('#DeviceValue').val(prefix + code);
+        });
+    </script>
+}

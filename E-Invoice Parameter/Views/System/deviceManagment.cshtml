@@ -1,0 +1,141 @@
+﻿@using E_Invoice_Parameter.Controllers
+@model List<DeviceListViewModel>
+@{
+    ViewData["Title"] = "Device Management";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/device-management.css" asp-append-version="true">
+
+<div class="container">
+   
+    <div class="system-header">
+        <div class="system-title">
+            <i class="fas fa-microchip"></i>
+            Device Management
+        </div>
+        <div class="header-actions">
+            <a href="@Url.Action("Create", "Device")" class="btn btn-create">
+                <i class="fas fa-plus-circle"></i> Add New Device
+            </a>
+            <a href="@Url.Action("Parameters", "System")" class="btn btn-parameters">
+                <i class="fas fa-cog"></i> Parameters
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    }
+
+    <div class="main-content">
+        <div class="forms-section" style="width: 100%;">
+            <div class="section-header">
+                <i class="fas fa-microchip"></i>
+                Registered Devices
+                <span class="selected-branch">(@(Model?.Count ?? 0) devices)</span>
+            </div>
+
+            <div class="forms-container">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="device-table">
+                            <thead>
+                                <tr>
+                                    <th>Device Name</th>
+                                    <th>Category</th>
+                                    @* <th>Model</th> *@
+                                    <th>Fixed Asset Code</th>
+                                    @* <th>Device Value</th>
+                                    <th>Branch</th> *@
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var device in Model)
+                                {
+                                    <tr>
+                                        <td class="device-name">
+                                            <strong>@device.DeviceName</strong>
+                                            @if (!string.IsNullOrEmpty(device.SerialNumber))
+                                            {
+                                                <div class="device-sn">SN: @device.SerialNumber</div>
+                                            }
+                                        </td>
+                                        <td>@device.Category</td>
+                                        @* <td>@device.Model</td> *@
+                                        <td>
+                                            <code>@device.FixedAssetCode</code>
+                                        </td>
+                                        @* <td class="device-value">@device.DeviceValue</td>
+                                        <td>@device.BranchName</td> *@
+                                        <td>
+                                            @if (device.IsActive)
+                                            {
+                                                <span class="status-badge status-active">
+                                                    <i class="fas fa-check-circle"></i> Active
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge status-inactive">
+                                                    <i class="fas fa-ban"></i> Inactive
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>@device.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                        <td class="action-buttons">
+                                         
+                                            <a href="@Url.Action("Edit", "Device", new { id = device.Id })" class="action-icon edit-icon" title="Edit Device">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button onclick="toggleDeviceStatus(@device.Id)" class="action-icon @(device.IsActive ? "deactivate-icon" : "activate-icon")"
+                                                    title="@(device.IsActive ? "Deactivate Device" : "Activate Device")">
+                                                <i class="fas @(device.IsActive ? "fa-ban" : "fa-check-circle")"></i>
+                                            </button>
+                                            <button onclick="deleteDevice(@device.Id, '@device.DeviceName')" class="action-icon delete-icon" title="Delete Device">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-microchip"></i>
+                        <p>No devices found. Click "Add New Device" to create one.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery token -->
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+<input type="hidden" id="RequestVerificationToken" value="@token" />
+
+<script src="~/js/device-management.js" asp-append-version="true"></script>

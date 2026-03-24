@@ -9,14 +9,14 @@ public class Configuration
 
     public int Pointer { get; set; }
 
-    public string Reference { get; set; } = string.Empty;
+    public string Reference { get; set; } = string.Empty; // Initialized
 
     [Column("consigneeUnit")]
     public int? ConsigneeUnitId { get; set; }
 
-    public string Attribute { get; set; } = string.Empty;
+    public string Attribute { get; set; } = string.Empty; // Initialized
 
-    public string CurrentValue { get; set; } = string.Empty;
+    public string CurrentValue { get; set; } = string.Empty; // Initialized
 
     public string? PreviousValue { get; set; }
 

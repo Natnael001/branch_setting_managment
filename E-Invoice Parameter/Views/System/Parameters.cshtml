@@ -4,92 +4,92 @@
 }
 
 <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/css/system-parameters.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/system-parameters.css" asp-append-version="true">
 
-        <div class="container">
-            @* <div class="welcome-title">
-                <i class="fas fa-cloud"></i>
-                Welcome to <b>Red Cloud ICT Solutions PLC</b>
-            </div> *@
-
-            <div class="system-header">
-                <div class="system-title">
-                    <i class="fas fa-cog"></i>
-                    System Parameters
-                </div>
-                <div class="header-actions">
-                    <!-- Add User Management Button -->
-                    @if (ViewBag.IsAdmin == true)
-                    {
-                        <a href="@Url.Action("UserManagement")" class="btn btn-user-management">
-                            <i class="fas fa-users-cog"></i> User Management
-                        </a>
-                    }
-                    <span class="btn btn-save" onclick="saveSettings()" id="saveBtn"><i class="fas fa-save"></i> Save</span>
-                    <span class="btn btn-print" onclick="printData()"><i class="fas fa-print"></i> Print</span>
-                </div>
-            </div>
-
-            <div id="printableData" data-print-date="">
-                <div class="main-content">
-                    <!-- Branches sidebar -->
-                    <div class="branches-sidebar">
-                        <div class="branches-header">
-                            <span><i class="fas fa-store"></i> Branch</span>
-                            <span>Settings</span>
-                        </div>
-
-                        <div class="branch-filter">
-                            <div style="display: flex; gap: 5px;">
-                                <input type="text" class="filter-input" id="branchFilter" placeholder="Filter branches..." onkeyup="filterBranches(this)">
-                                <button class="btn-small" onclick="clearFilter()" style="padding: 0 12px; background: #f8fafd; border: 1px solid #d0d5dd; border-radius: 4px; cursor: pointer;">
-                                    <i class="fas fa-times" style="color: #e65c00;"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <ul class="branches-list" id="branchList">
-                            <!-- Branches will be loaded dynamically -->
-                        </ul>
-                    </div>
-
-                    <!-- Forms section -->
-                    <div class="forms-section" id="formsSection">
-                        <div class="section-header">
-                            <i class="fas fa-file-invoice"></i>
-                            E-Invoice Parameter
-                            <span class="selected-branch" id="selectedBranchName">-</span>
-                        </div>
-
-                        <div class="settings-loader" id="settingsLoader" style="display: none;">
-                            <div class="spinner"></div>
-                            <div style="color: #e65c00; font-weight: 500;">Loading settings...</div>
-                        </div>
-
-                        <div class="forms-container" id="settingsBody">
-                            <!-- Settings form will be loaded here via partial view -->
-                            @* This will be populated by JavaScript *@
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Anti-forgery token -->
-            @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-            @{
-                var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
-            }
-            <input type="hidden" id="RequestVerificationToken" value="@token" />
-
-            <!-- Pass TIN to JavaScript -->
-            <script>
-                    var tin = '@tin';
-                    console.log('TIN from server:', tin);
-                    if (tin) {
-                        sessionStorage.setItem('verifiedTin', tin);
-                    }
-            </script>
-
-            <script src="~/js/shared.js" asp-append-version="true"></script>
-            <script src="~/js/system-parameters.js" asp-append-version="true"></script>
+<div class="container">
+    <div class="system-header">
+        <div class="system-title">
+            <i class="fas fa-cog"></i>
+            System Parameters
         </div>
+        <div class="header-actions">
+            @if (ViewBag.IsAdmin == true)
+            {
+                <a href="@Url.Action("UserManagement", "System")" class="btn btn-user-management">
+                    <i class="fas fa-users-cog"></i> User Management
+                </a>
+                <a href="@Url.Action("Index", "Device")" class="btn btn-device-management">
+                    <i class="fas fa-microchip"></i> Device Management
+                </a>
+            }
+            <span class="btn btn-save" onclick="saveSettings()" id="saveBtn">
+                <i class="fas fa-save"></i> Save
+            </span>
+            <span class="btn btn-print" onclick="printData()">
+                <i class="fas fa-print"></i> Print
+            </span>
+        </div>
+    </div>
+
+    <div id="printableData" data-print-date="">
+        <div class="main-content">
+            <!-- Branches sidebar -->
+            <div class="branches-sidebar">
+                <div class="branches-header">
+                    <span><i class="fas fa-store"></i> Branch</span>
+                    <span>Settings</span>
+                </div>
+
+                <div class="branch-filter">
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" class="filter-input" id="branchFilter" placeholder="Filter branches..." onkeyup="filterBranches(this)">
+                        <button class="btn-small" onclick="clearFilter()" style="padding: 0 12px; background: #f8fafd; border: 1px solid #d0d5dd; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-times" style="color: #e65c00;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <ul class="branches-list" id="branchList">
+                    <!-- Branches will be loaded dynamically -->
+                </ul>
+            </div>
+
+            <!-- Forms section -->
+            <div class="forms-section" id="formsSection">
+                <div class="section-header">
+                    <i class="fas fa-file-invoice"></i>
+                    E-Invoice Parameter
+                    <span class="selected-branch" id="selectedBranchName">-</span>
+                </div>
+
+                <div class="settings-loader" id="settingsLoader" style="display: none;">
+                    <div class="spinner"></div>
+                    <div style="color: #e65c00; font-weight: 500;">Loading settings...</div>
+                </div>
+
+                <div class="forms-container" id="settingsBody">
+                    <!-- Settings form will be loaded here via partial view -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anti-forgery token -->
+    @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+    @{
+        var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    }
+    <input type="hidden" id="RequestVerificationToken" value="@token" />
+
+    <!-- Pass TIN to JavaScript -->
+    <script>
+        var tin = '@tin';
+        console.log('TIN from server:', tin);
+        if (tin) {
+            sessionStorage.setItem('verifiedTin', tin);
+        }
+    </script>
+
+    <script src="~/js/shared.js" asp-append-version="true"></script>
+    <script src="~/js/system-parameters.js" asp-append-version="true"></script>
+</div>

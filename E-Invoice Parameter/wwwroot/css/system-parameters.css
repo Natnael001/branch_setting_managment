@@ -3,7 +3,16 @@
     margin: 0;
     padding: 0;
 }
+.btn-device-management {
+    background: white;
+    color: black;
+}
 
+.btn-device-management:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    background: white;
+}
 .container {
     width: 100%;
     max-width: none;

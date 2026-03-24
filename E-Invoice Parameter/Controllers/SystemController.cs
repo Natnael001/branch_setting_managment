@@ -59,7 +59,15 @@ public class SystemController : Controller
     }
 
 
+    [HttpGet]
+    public IActionResult DeviceManagement()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToAction("Verification");
 
+        return View();
+    }
 
     private async Task PrepareViewBag()
     {
@@ -163,11 +171,6 @@ public class SystemController : Controller
     [AllowAnonymous]
     public IActionResult Login()
     {
-        if (User.Identity != null && User.Identity.IsAuthenticated && HttpContext.Session.GetInt32("UserId") != null)
-        {
-            return RedirectToAction("Parameters");
-        }
-
         var tin = TempData["VerifiedTin"]?.ToString();
         if (string.IsNullOrEmpty(tin))
         {
@@ -246,98 +249,6 @@ public class SystemController : Controller
         }
     }
 
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult TestPassword(string username = "admin", string password = "P@$$123")
-    {
-        try
-        {
-            var results = new List<object>();
-            var users = _context.Users
-                .Where(u => u.UserName.ToLower() == username.ToLower())
-                .ToList();
-
-            if (!users.Any())
-            {
-                return Content($"No user found with username: {username}");
-            }
-
-            foreach (var user in users)
-            {
-                try
-                {
-                    if (string.IsNullOrEmpty(user.PasswordHash) || string.IsNullOrEmpty(user.Salt))
-                    {
-                        results.Add(new
-                        {
-                            UserId = user.Id,
-                            Username = user.UserName,
-                            Error = "PasswordHash or Salt is null"
-                        });
-                        continue;
-                    }
-
-                    bool valid = PasswordHelper.VerifyPassword(password, user.UserName, user.PasswordHash, user.Salt);
-
-                    results.Add(new
-                    {
-                        UserId = user.Id,
-                        Username = user.UserName,
-                        PasswordValid = valid,
-                        HashAlgorithm = user.Salt.Length == 128 ? "SHA-512 (New)" : "Legacy/Unknown"
-                    });
-                }
-                catch (Exception ex)
-                {
-                    results.Add(new
-                    {
-                        UserId = user.Id,
-                        Username = user.UserName,
-                        Error = ex.Message
-                    });
-                }
-            }
-
-            return Json(results);
-        }
-        catch (Exception ex)
-        {
-            return Json(new { error = ex.Message });
-        }
-    }
-
-
-    [HttpGet]
-    public IActionResult DebugTin(string tin)
-    {
-        try
-        {
-            var results = new
-            {
-                AllConsignees = _context.Consignees
-                    .Where(c => c.Tin != null)
-                    .Select(c => new { c.Id, c.Tin, c.GslType, c.IsActive, c.FirstName, c.SecondName })
-                    .ToList(),
-
-                GslType1 = _context.Consignees
-                    .Where(c => c.Tin != null && c.Tin == tin && c.GslType == 1)
-                    .Select(c => new { c.Id, c.Tin, c.GslType, c.IsActive, c.FirstName, c.SecondName })
-                    .FirstOrDefault(),
-
-                Branches = _context.Consignees
-                    .Where(c => c.Tin != null && c.Tin == tin)
-                    .SelectMany(c => _context.ConsigneeUnits.Where(u => u.ConsigneeId == c.Id && u.Type == 1719))
-                    .Select(u => new { u.id, u.Name, u.IsActive })
-                    .ToList()
-            };
-
-            return Json(results);
-        }
-        catch (Exception ex)
-        {
-            return Json(new { error = ex.Message });
-        }
-    }
 
     [HttpPost]
     [AllowAnonymous]
@@ -452,14 +363,6 @@ public class SystemController : Controller
 
         return PartialView("~/Views/System/_BranchSettings.cshtml", settings);
     }
-
-    public IActionResult TestDb()
-    {
-        var count = _context.Consignees.Count();
-        return Content("Connected. Consignee count: " + count);
-    }
-
-
 
     [HttpGet]
     [AllowAnonymous]
@@ -867,6 +770,11 @@ public class SystemController : Controller
             SessionKeys = HttpContext.Session.Keys.ToList()
         });
     }
+
+
+
+
+
 
     [HttpGet]
     [AllowAnonymous]

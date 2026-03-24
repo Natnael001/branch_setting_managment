@@ -1,0 +1,188 @@
+﻿@using E_Invoice_Parameter.Controllers
+@model DeviceCreationViewModel
+@{
+    ViewData["Title"] = "Edit Device";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/device-form.css" asp-append-version="true">
+
+<div class="container">
+    <div class="welcome-title">
+        <i class="fas fa-cloud"></i>
+        Welcome to <b>Red Cloud ICT Solutions PLC</b>
+    </div>
+
+    <div class="system-header">
+        <div class="system-title">
+            <i class="fas fa-edit"></i>
+            Edit Device
+        </div>
+        <div class="header-actions">
+            <a href="@Url.Action("Index", "Device")" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Devices
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    }
+
+    <div class="main-content">
+        <div class="forms-section" style="width: 100%;">
+            <div class="section-header">
+                <i class="fas fa-info-circle"></i>
+                Edit Device Information
+            </div>
+
+            <div class="forms-container">
+                <form method="post" asp-action="Edit" asp-controller="Device" asp-route-id="@Model?.Id">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="ArticleId" /> 
+                    <input type="hidden" asp-for="FixedAssetCode" />
+               
+
+                    <div class="form-grid">
+                        <!-- Left Column -->
+                        <div class="form-column">
+                            <!-- Fixed Asset Code Display (Read-only) -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-qrcode"></i> Fixed Asset Code
+                                </label>
+                                <input type="text" class="form-control"
+                                       value="@Model?.FixedAssetCode"
+                                       readonly disabled
+                                       style="background-color: #f8fafd; font-family: monospace; font-weight: bold;" />
+                                <small class="text-muted">Fixed asset code from Article table (read-only)</small>
+                            </div>
+                            <input type="hidden" asp-for="ArticleId" />
+                            <input type="hidden" asp-for="FixedAssetCode" />
+
+                            <!-- Category -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-tag"></i> Category <span class="required">*</span>
+                                </label>
+                                <select asp-for="CategoryId" class="form-control" required>
+                                    <option value="">-- Select Category --</option>
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        foreach (var cat in ViewBag.Categories)
+                                        {
+                                            <option value="@cat.Id">@cat.Description</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Device Name -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-microchip"></i> Device Name <span class="required">*</span>
+                                </label>
+                                <input asp-for="DeviceName" class="form-control"
+                                       placeholder="Enter device name" required />
+                                <small class="text-muted">Unique name for this device</small>
+                                <span asp-validation-for="DeviceName" class="text-danger"></span>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-info-circle"></i> Description
+                                </label>
+                                <input asp-for="Description" class="form-control"
+                                       placeholder="Enter description" />
+                                <small class="text-muted">Optional description</small>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="form-column">
+                            <!-- Branch -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-store"></i> Branch
+                                </label>
+                                <select asp-for="BranchId" class="form-control">
+                                    <option value="">-- Select Branch --</option>
+                                    @if (ViewBag.Branches != null)
+                                    {
+                                        foreach (var branch in ViewBag.Branches)
+                                        {
+                                            <option value="@branch.id">@branch.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <small class="text-muted">Optional branch assignment</small>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-container">
+                                    <input asp-for="IsActive" type="checkbox" />
+                                    <span class="checkmark">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    <span class="checkbox-text">
+                                        <i class="fas fa-power-off"></i> Active Device
+                                    </span>
+                                </label>
+                                <small class="text-muted">Inactive devices cannot be used in the system</small>
+                            </div>
+
+                            <!-- Remark -->
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-comment"></i> Remark
+                                </label>
+                                <textarea asp-for="Remark" class="form-control" rows="4"
+                                          placeholder="Optional notes about this device"></textarea>
+                                <small class="text-muted">Any additional information</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-save"></i> Update Device
+                        </button>
+                        <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Highlight required fields on submit attempt
+            $('form').on('submit', function() {
+                if ($('#CategoryId').val() == '') {
+                    $('#CategoryId').css('border-color', '#dc3545');
+                }
+                if ($('#DeviceName').val() == '') {
+                    $('#DeviceName').css('border-color', '#dc3545');
+                }
+            });
+
+            // Remove highlight when user selects
+            $('#CategoryId, #DeviceName').on('change input', function() {
+                $(this).css('border-color', '#d0d5dd');
+            });
+        });
+    </script>
+}
