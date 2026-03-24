@@ -48,14 +48,14 @@
                         </button>
                     </div>
                 </div>
-
-                <ul class="branches-list" id="branchList">
-                    <!-- Branches will be loaded dynamically -->
-                </ul>
+                       
+                            <ul class="branches-list" id="branchList">
+                                <!-- Branches will be loaded dynamically -->
+                            </ul>
+              
             </div>
-
             <!-- Forms section -->
-            <div class="forms-section" id="formsSection">
+                <div class="forms-section" id="formsSection">
                 <div class="section-header">
                     <i class="fas fa-file-invoice"></i>
                     E-Invoice Parameter
@@ -66,11 +66,14 @@
                     <div class="spinner"></div>
                     <div style="color: #e65c00; font-weight: 500;">Loading settings...</div>
                 </div>
-
+                        @if (ViewBag.IsAdmin != true)
+                        {
                 <div class="forms-container" id="settingsBody">
                     <!-- Settings form will be loaded here via partial view -->
                 </div>
+                        }
             </div>
+          
         </div>
     </div>
 

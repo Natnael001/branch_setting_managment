@@ -4,13 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 public class LoginModel
 {
@@ -193,62 +187,6 @@ public class SystemController : Controller
         _logger.LogInformation("Login page accessed with TIN: {Tin}", tin);
         return View();
     }
-
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult CreateTestUser()
-    {
-        try
-        {
-            _logger.LogInformation("Starting CreateTestUser");
-
-            var existingUsers = _context.Users.Where(u => u.UserName == "admin").ToList();
-            if (existingUsers.Any())
-            {
-                _context.Users.RemoveRange(existingUsers);
-                _context.SaveChanges();
-                _logger.LogInformation("Removed {Count} existing admin users", existingUsers.Count);
-            }
-
-            var (hash, salt) = PasswordHelper.HashPassword("P@$$123", "admin");
-
-            _logger.LogInformation("Generated hash: {Hash}, salt: {Salt}", hash, salt);
-
-            var user = new User
-            {
-                UserName = "admin",
-                PasswordHash = hash,
-                Salt = salt,
-                IsActive = true,
-                CreatedAt = DateTime.Now,
-                LoggedInStatus = 1390,
-                Remark = null,
-                FirstLoginAt = null,
-                LastLoginAt = null,
-                ModifiedAt = null
-            };
-
-            _context.Users.Add(user);
-            var saveResult = _context.SaveChanges();
-
-            _logger.LogInformation("SaveChanges returned: {SaveResult}", saveResult);
-
-            return Content($@"
-            <h3>✅ Test User Created Successfully!</h3>
-            <p><strong>Username:</strong> admin</p>
-            <p><strong>Password:</strong> P@$$123</p>
-            <p><strong>Hash:</strong> {hash}</p>
-            <p><strong>Salt:</strong> {salt}</p>
-            <p><a href='/System/Login'>Go to Login</a></p>
-        ", "text/html");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating test user");
-            return Content($"Error creating user: {ex.Message}");
-        }
-    }
-
 
     [HttpPost]
     [AllowAnonymous]
@@ -772,61 +710,6 @@ public class SystemController : Controller
     }
 
 
-
-
-
-
-    [HttpGet]
-    [AllowAnonymous]
-    public async Task<IActionResult> DebugLogin(string username = "admin", string password = "P@$$123")
-    {
-        try
-        {
-            _logger.LogInformation("DebugLogin attempt for username: {Username}", username);
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username && u.IsActive);
-
-            if (user == null)
-            {
-                return Json(new { success = false, message = "User not found" });
-            }
-
-            if (string.IsNullOrEmpty(user.PasswordHash) || string.IsNullOrEmpty(user.Salt))
-            {
-                return Json(new { success = false, message = "User has null hash or salt" });
-            }
-
-            bool valid = PasswordHelper.VerifyPassword(password, user.UserName, user.PasswordHash, user.Salt);
-
-            return Json(new
-            {
-                success = true,
-                userFound = true,
-                passwordValid = valid,
-                userId = user.Id,
-                userName = user.UserName,
-                hashLength = user.PasswordHash.Length,
-                saltLength = user.Salt.Length,
-                hash = user.PasswordHash,
-                salt = user.Salt,
-                algorithmDetected = user.Salt.Length == 128 ? "SHA-512 Hex" : "Legacy/Unknown"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "DebugLogin error");
-            return Json(new { success = false, error = ex.Message, stackTrace = ex.StackTrace });
-        }
-    }
-
-
-
-
-
-
-
-
     [HttpGet]
     public async Task<IActionResult> UserManagement()
     {
@@ -894,16 +777,6 @@ public class SystemController : Controller
             return View();
         }
     }
-
-
-
-
-
-
-
-
-
-
 
 
 
