@@ -32,7 +32,6 @@ public class SystemController : Controller
     }
 
 
-
     private bool IsCurrentUserAdmin()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -47,6 +46,28 @@ public class SystemController : Controller
                       role => role.id,
                       (urm, role) => new { urm.ExpiryDate, role.Name })
                 .Any(r => r.Name == "Administrator" && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Admin check failed for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    private bool IsCurrentUserSystemAdmin()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return false;
+
+        try
+        {
+            return _context.UserRoleMappers
+                .Where(urm => urm.UserId == userId)
+                .Join(_context.ConsigneeUnits,
+                      urm => urm.RoleId,
+                      role => role.id,
+                      (urm, role) => new { urm.ExpiryDate, role.Name })
+                .Any(r => r.Name == "System Administrator" && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
         }
         catch (Exception ex)
         {
@@ -73,7 +94,6 @@ public class SystemController : Controller
             .Select(r => new { r.id, r.Name })
             .ToListAsync();
     }
-
 
 
     private string GenerateEmployeeCode()
@@ -149,9 +169,12 @@ public class SystemController : Controller
 
        
         bool isAdmin = IsCurrentUserAdmin();
+        bool isSystemAdmin = IsCurrentUserSystemAdmin();
 
         ViewBag.Tin = tin;
         ViewBag.IsAdmin = isAdmin;
+        ViewBag.IsSystemAdmin = isSystemAdmin;
+
 
         return View();
     }
@@ -213,6 +236,22 @@ public class SystemController : Controller
                 return Json(new { success = false, message = "Invalid username or password." });
             }
 
+            var allowedRoles = new[] { "System Administrator", "Administrator" };
+
+            var hasAllowedRole = await _context.UserRoleMappers
+                .Where(urm => urm.UserId == user.Id)
+                .Join(_context.ConsigneeUnits,
+                      urm => urm.RoleId,
+                      role => role.id,
+                      (urm, role) => new { urm.ExpiryDate, role.Name })
+                .AnyAsync(r => allowedRoles.Contains(r.Name) && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
+
+            if (!hasAllowedRole)
+            {
+                _logger.LogWarning("Login denied for user {Username}: insufficient role", model.Username);
+                return Json(new { success = false, message = "Access denied. You do not have permission to log in." });
+            }
+
             user.LastLoginAt = DateTime.Now;
             user.FirstLoginAt ??= DateTime.Now;
             user.LoggedInStatus = 1390;
@@ -269,8 +308,6 @@ public class SystemController : Controller
             return Json(new { success = false, message = $"CRASH: {ex.Message}" });
         }
     }
-
-
 
 
     [HttpGet]
@@ -397,7 +434,6 @@ public class SystemController : Controller
             });
         }
     }
-
 
 
     [HttpGet]
@@ -796,7 +832,6 @@ public class SystemController : Controller
     }
 
 
-
     [HttpGet]
     public async Task<IActionResult> CreateUser()
     {
@@ -827,7 +862,6 @@ public class SystemController : Controller
             return RedirectToAction("UserManagement");
         }
     }
-
 
 
     [HttpPost]
@@ -919,7 +953,6 @@ public class SystemController : Controller
     }
 
 
-
     //GET Edit User
     [HttpGet]
     public async Task<IActionResult> EditUser(int id)
@@ -981,9 +1014,6 @@ public class SystemController : Controller
             return RedirectToAction("UserManagement");
         }
     }
-
-
-
 
 
     // POST: Edit User
@@ -1101,15 +1131,6 @@ public class SystemController : Controller
         ViewBag.Roles = roles;
         if (id.HasValue) ViewBag.UserId = id.Value;
     }
-
-
-
-
-
-
-
-
-
 
 
     // POST: Toggle User Status

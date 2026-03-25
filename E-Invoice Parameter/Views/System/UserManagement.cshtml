@@ -69,6 +69,7 @@
                                     <tbody>
                                         @foreach (var user in users)
                                         {
+                                            @if (user?.IsActive == true){
                                             <tr>
                                                 <td class="device-name">
                                                     <strong>@(user?.UserName ?? "N/A")</strong>
@@ -114,6 +115,7 @@
                                                     </button>
                                                 </td>
                                             </tr>
+                                            }
                                         }
                                     </tbody>
                                 </table>

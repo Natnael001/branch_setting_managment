@@ -51,14 +51,14 @@ namespace E_Invoice_Parameter.Controllers
         {
             // Categories - Type "Device" with Id 599
             ViewBag.Categories = await _context.SystemConstants
-             
+
                 //.Where(c => c.Type == "Device" && c.Id == 599)
                 .Where(c => c.Type == "Device")
                 .ToListAsync();
 
             // Connection Types - Category "Connection Type"
             ViewBag.ConnectionTypes = await _context.SystemConstants
-                .Where(c => c.Category == "Connection Type")
+                .Where(c => c.Category == "Connection Type" )
                 .ToListAsync();
 
             //// Suppliers - Category "Fiscal Printer Supplier"
@@ -114,7 +114,7 @@ namespace E_Invoice_Parameter.Controllers
                 var model = new DeviceDetailsViewModel
                 {
                     Id = device.Id,
-                    DeviceName = device.MachineName,
+                    DeviceName = device.MachineName.Trim(),
                     Category = GetCategoryName(device.Type),
                     ConnectionType = GetConnectionTypeName(device.ConnectionType),
                     Supplier = article?.DefaultSupplier?.ToString() ?? "N/A",
@@ -202,7 +202,7 @@ namespace E_Invoice_Parameter.Controllers
             {
                 LocalCode = model.FixedAssetCode,  // The generated code
                 GslType = 15,  // Device type constant
-                Name = model.DeviceName,
+                Name = model.DeviceName.Trim(),
                 Uom = 1400,  // Default UOM
                 Preference = 1,
                 NeedsUOMConversion = true,
@@ -563,26 +563,33 @@ namespace E_Invoice_Parameter.Controllers
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Category is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid category")]
         public int CategoryId { get; set; }
 
         [Required(ErrorMessage = "Device name is required")]
-        [StringLength(50, MinimumLength = 3)]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Device name must be between 3 and 50 characters")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-_]+$", ErrorMessage = "Device name can only contain letters, numbers, spaces, hyphens, and underscores")]
         public string DeviceName { get; set; }
 
-        // Auto-generated
         public string FixedAssetCode { get; set; }
+        public string Model_two { get; set; }
+
         public int ArticleId { get; set; }
-        // Optional - remove for now
-        //  public int? ConnectionType { get; set; }
-        // public int? SupplierId { get; set; }
-        public string? Model_two { get; set; }
-         public string? Description { get; set; }
-        // public string? DeviceValue { get; set; }
+
+        [StringLength(200, ErrorMessage = "Description cannot exceed 200 characters")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-_,.():;]+$", ErrorMessage = "Description contains invalid characters")]
+        public string? Description { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid branch")]
         public int? BranchId { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        [StringLength(500, ErrorMessage = "Remark cannot exceed 500 characters")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-_,.():;""']+$", ErrorMessage = "Remark contains invalid characters")]
         public string? Remark { get; set; }
     }
+
     public class DeviceListViewModel
     {
         public int Id { get; set; }
