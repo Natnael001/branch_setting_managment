@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -20,12 +19,16 @@ public class SystemController : Controller
     private readonly AppDbContext _context;
     private readonly ILogger<SystemController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly FtpHelper _ftpHelper;
+    private readonly IConfiguration _configuration;
 
-    public SystemController(AppDbContext context, ILogger<SystemController> logger, IWebHostEnvironment webHostEnvironment)
+    public SystemController(AppDbContext context, ILogger<SystemController> logger, IWebHostEnvironment webHostEnvironment, FtpHelper ftpHelper, IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
-        _webHostEnvironment = webHostEnvironment; 
+        _webHostEnvironment = webHostEnvironment;
+        _ftpHelper = ftpHelper;
+        _configuration = configuration;
     }
 
 
@@ -487,15 +490,35 @@ public class SystemController : Controller
             const int pointer = 992;
             const string reference = "Company";
 
-            var allowedCertificateExtensions = new[] { ".cer", ".crt", ".pem", ".der", ".pfx", ".p12" };
-            var allowedKeyExtensions = new[] { ".pem", ".key", ".ppk", ".txt" };
+            var allowedCertificateExtensions = new[] { ".cer", ".crt", ".pem" };
+            var allowedKeyExtensions = new[] { ".pem", ".key" };
 
-            string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "certificates");
+            var ftpBaseUrl = _configuration["Ftp:BaseUrl"]?.TrimEnd('/');
+            var ftpUsername = _configuration["Ftp:Username"];
+            var ftpPassword = _configuration["Ftp:Password"];
 
-            if (!Directory.Exists(uploadFolder))
+            var tin = HttpContext.Session.GetString("VerifiedTin");
+            if (string.IsNullOrEmpty(tin))
+                return Json(new { success = false, message = "Company TIN not found in session." });
+
+
+            //debug
+            string testPath = $"{ftpBaseUrl}/test_{Guid.NewGuid()}.txt";
+            byte[] testData = System.Text.Encoding.UTF8.GetBytes("test");
+            using (var ms = new MemoryStream(testData))
             {
-                Directory.CreateDirectory(uploadFolder);
+                bool uploaded = await _ftpHelper.UploadFileAsync(testPath, ms);
+                if (uploaded) await _ftpHelper.DeleteFileAsync(testPath);
             }
+
+
+
+            string relativePath = $"{tin}/GslProfile/{model.BranchId}/DigitalCertificate";
+            string fullFtpBase = $"{ftpBaseUrl}/{relativePath}";
+
+            bool dirCreated = await _ftpHelper.EnsureDirectoryExistsAsync(relativePath);
+            if (!dirCreated)
+                _logger.LogWarning("Could not create FTP directory: {Path}", fullFtpBase);
 
             string digitalCertPath = null;
             if (model.DigitalCertificate != null && model.DigitalCertificate.Length > 0)
@@ -516,14 +539,16 @@ public class SystemController : Controller
                 }
 
                 string fileName = $"{Guid.NewGuid()}_{model.BranchId}_cert{fileExtension}";
-                string filePath = Path.Combine(uploadFolder, fileName);
+                string remoteFilePath = $"{fullFtpBase}/{fileName}";
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                using (var fileStream = model.DigitalCertificate.OpenReadStream())
                 {
-                    await model.DigitalCertificate.CopyToAsync(stream);
+                    bool uploaded = await _ftpHelper.UploadFileAsync(remoteFilePath, fileStream);
+                    if (!uploaded)
+                        return Json(new { success = false, message = "Failed to upload certificate." });
                 }
 
-                digitalCertPath = $"/uploads/certificates/{fileName}";
+                digitalCertPath = $"{relativePath}/{fileName}";
                 _logger.LogInformation("Digital Certificate uploaded: {Path}", digitalCertPath);
             }
 
@@ -546,24 +571,26 @@ public class SystemController : Controller
                 }
 
                 string fileName = $"{Guid.NewGuid()}_{model.BranchId}_key{fileExtension}";
-                string filePath = Path.Combine(uploadFolder, fileName);
+                string remoteFilePath = $"{fullFtpBase}/{fileName}";
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                using (var fileStream = model.PrivateKey.OpenReadStream())
                 {
-                    await model.PrivateKey.CopyToAsync(stream);
+                    bool uploaded = await _ftpHelper.UploadFileAsync(remoteFilePath, fileStream);
+                    if (!uploaded)
+                        return Json(new { success = false, message = "Failed to upload private key." });
                 }
 
-                privateKeyPath = $"/uploads/certificates/{fileName}";
+                privateKeyPath = $"{relativePath}/{fileName}";
                 _logger.LogInformation("Private Key uploaded: {Path}", privateKeyPath);
             }
 
             var textAttributes = new Dictionary<string, string>
-        {
-            { "Source Number", model.SourceNumber },
-            { "Client ID", model.ClientId },
-            { "Client Secret", model.ClientSecret },
-            { "API Key", model.ApiKey }
-        };
+            {
+                { "Source Number", model.SourceNumber },
+                { "Client ID", model.ClientId },
+                { "Client Secret", model.ClientSecret },
+                { "API Key", model.ApiKey }
+            };
 
             foreach (var attr in textAttributes)
             {
@@ -587,7 +614,7 @@ public class SystemController : Controller
                         Pointer = pointer,
                         Reference = reference ?? "Company",
                         ConsigneeUnitId = model.BranchId,
-                        Attribute = attr.Key ?? "Unknown", 
+                        Attribute = attr.Key ?? "Unknown",
                         CurrentValue = safeValue,
                         PreviousValue = safeValue,
                         Remark = null
@@ -606,15 +633,11 @@ public class SystemController : Controller
 
                 if (existingCert != null)
                 {
+                    // Delete old file from FTP
                     if (!string.IsNullOrEmpty(existingCert.CurrentValue))
                     {
-                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath,
-                            existingCert.CurrentValue.TrimStart('/'));
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                            _logger.LogInformation("Deleted old certificate file: {Path}", oldFilePath);
-                        }
+                        string oldRemotePath = $"{ftpBaseUrl}/{existingCert.CurrentValue}";
+                        await _ftpHelper.DeleteFileAsync(oldRemotePath);
                     }
 
                     existingCert.PreviousValue = existingCert.CurrentValue;
@@ -630,7 +653,7 @@ public class SystemController : Controller
                         Attribute = "Digital Certificate Path",
                         CurrentValue = digitalCertPath,
                         PreviousValue = digitalCertPath,
-                        Remark = "NULL"
+                        Remark = null
                     };
                     _context.Configurations.Add(config);
                 }
@@ -646,15 +669,11 @@ public class SystemController : Controller
 
                 if (existingKey != null)
                 {
+                    // Delete old file from FTP
                     if (!string.IsNullOrEmpty(existingKey.CurrentValue))
                     {
-                        string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath,
-                            existingKey.CurrentValue.TrimStart('/'));
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                            _logger.LogInformation("Deleted old private key file: {Path}", oldFilePath);
-                        }
+                        string oldRemotePath = $"{ftpBaseUrl}/{existingKey.CurrentValue}";
+                        await _ftpHelper.DeleteFileAsync(oldRemotePath);
                     }
 
                     existingKey.PreviousValue = existingKey.CurrentValue;
@@ -670,7 +689,7 @@ public class SystemController : Controller
                         Attribute = "Private Key Path",
                         CurrentValue = privateKeyPath,
                         PreviousValue = privateKeyPath,
-                        Remark = "null"
+                        Remark = null
                     };
                     _context.Configurations.Add(config);
                 }
@@ -683,9 +702,7 @@ public class SystemController : Controller
         {
             _logger.LogError(ex, "Error saving branch settings for branch {BranchId}", model?.BranchId);
             if (ex.InnerException != null)
-            {
                 _logger.LogError(ex.InnerException, "Inner exception details");
-            }
             return Json(new { success = false, message = $"An error occurred while saving: {ex.Message}" });
         }
     }
@@ -1155,6 +1172,22 @@ public class SystemController : Controller
         public int Id { get; set; }
     }
 
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadCertificate(string filePath)
+    {
+        var tin = HttpContext.Session.GetString("VerifiedTin");
+        if (string.IsNullOrEmpty(tin) || !filePath.StartsWith($"{tin}"))
+            return Unauthorized();
+
+        string fullRemotePath = $"{_configuration["Ftp:BaseUrl"].TrimEnd('/')}/{filePath}";
+        var stream = await _ftpHelper.DownloadFileAsync(fullRemotePath);
+        if (stream == null) return NotFound();
+
+        return File(stream, "application/octet-stream", Path.GetFileName(filePath));
+    }
+
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
@@ -1165,6 +1198,7 @@ public class SystemController : Controller
 
         return RedirectToAction("Login", "System");
     }
+
 }
 
 public class UserManagementViewModel

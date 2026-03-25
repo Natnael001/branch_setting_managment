@@ -6,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddScoped<FtpHelper>();
 
-// 1. Session Configuration
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -16,13 +16,12 @@ builder.Services.AddSession(options =>
     options.Cookie.Name = ".MyApp.Session";
 });
 
-// 2. Authentication Configuration (Fixes the 401/404 errors)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.LoginPath = "/System/Verification"; // Where to go if not logged in
+        options.LoginPath = "/System/Verification";
         options.LogoutPath = "/System/Logout";
         options.AccessDeniedPath = "/System/AccessDenied";
     });
@@ -42,7 +41,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// 3. Pipeline Order (CRITICAL)
 app.UseSession();
 
 // Anti-Cache Middleware
@@ -54,8 +52,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseAuthentication(); // WHO are you?
-app.UseAuthorization();  // WHAT can you do?
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

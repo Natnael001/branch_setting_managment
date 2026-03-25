@@ -21,7 +21,6 @@ public class UserCreationViewModel
     [Display(Name = "Username")]
     [MinLength(3, ErrorMessage = "Username must be at least 3 characters")]
     [MaxLength(50, ErrorMessage = "Username cannot exceed 50 characters")]
-    [RegularExpression(@"^[a-zA-Z0-9._]+$", ErrorMessage = "Username can only contain letters, numbers, dots and underscores")]
     public string Username { get; set; }
 
     // Password fields are optional for editing – no [Required] attributes

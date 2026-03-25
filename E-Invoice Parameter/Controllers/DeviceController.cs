@@ -49,7 +49,7 @@ namespace E_Invoice_Parameter.Controllers
 
         private async Task LoadDropdownData()
         {
-            // Categories - Type "Device" with Id 599 (like your previous project)
+            // Categories - Type "Device" with Id 599
             ViewBag.Categories = await _context.SystemConstants
              
                 //.Where(c => c.Type == "Device" && c.Id == 599)
