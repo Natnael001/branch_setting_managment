@@ -10,13 +10,12 @@ public static class PasswordHelper
 
     public static (string hash, string salt) HashPassword(string password, string username)
     {
-        if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password required");
-
-        string normalizedUsername = username.ToLowerInvariant();
+        if (string.IsNullOrEmpty(password))
+            throw new ArgumentException("Password required");
 
         byte[] saltBytes = RandomNumberGenerator.GetBytes(KeySize);
         byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.UTF8.GetBytes(password + normalizedUsername),
+            Encoding.UTF8.GetBytes(password + username),
             saltBytes,
             Iterations,
             _hashAlgorithm,
@@ -33,19 +32,20 @@ public static class PasswordHelper
 
         try
         {
-            string normalizedUsername = username.ToLowerInvariant();
-
             byte[] saltBytes = Convert.FromHexString(storedSalt);
             byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
-                Encoding.UTF8.GetBytes(password + normalizedUsername),
+                Encoding.UTF8.GetBytes(password + username),
                 saltBytes,
                 Iterations,
                 _hashAlgorithm,
                 KeySize
             );
 
-            return Convert.ToHexString(hashBytes).Equals(storedHash, StringComparison.OrdinalIgnoreCase);
+            return CryptographicOperations.FixedTimeEquals(hashBytes, Convert.FromHexString(storedHash));
         }
-        catch { return false; }
+        catch
+        {
+            return false;
+        }
     }
 }

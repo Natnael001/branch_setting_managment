@@ -231,7 +231,7 @@ public class SystemController : Controller
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserName.ToLower() == model.Username.ToLower() && u.IsActive);
 
-            if (user == null || !PasswordHelper.VerifyPassword(model.Password, model.Username, user.PasswordHash, user.Salt))
+            if (user == null || !PasswordHelper.VerifyPassword(model.Password, user.UserName, user.PasswordHash, user.Salt))
             {
                 return Json(new { success = false, message = "Invalid username or password." });
             }

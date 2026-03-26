@@ -9,6 +9,11 @@
 <link rel="stylesheet" href="~/css/device-form.css" asp-append-version="true">
 
 <div class="container">
+    <div class="welcome-title">
+        <i class="fas fa-cloud"></i>
+        Welcome to <b>Red Cloud ICT Solutions PLC</b>
+    </div>
+
     <div class="system-header">
         <div class="system-title">
             <i class="fas fa-edit"></i>
@@ -78,106 +83,118 @@
                                 </select>
                                 <span asp-validation-for="CategoryId" class="text-danger"></span>
                             </div>
+                            
 
-                            <!-- Device Name -->
-                            <div class="form-group">
-                                <label>
-                                    <i class="fas fa-microchip"></i> Device Name <span class="required">*</span>
-                                </label>
-                                <input asp-for="DeviceName" class="form-control"
-                                       placeholder="Enter device name" required />
-                                <small class="text-muted">Unique name for this device</small>
-                                <span asp-validation-for="DeviceName" class="text-danger"></span>
+                                    <!-- Device Name -->
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-microchip"></i> Device Name <span class="required">*</span>
+                                        </label>
+                                        <input asp-for="DeviceName" class="form-control"
+                                               placeholder="Enter device name" required />
+                                        <small class="text-muted">Unique name for this device</small>
+                                        <span asp-validation-for="DeviceName" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-info-circle"></i> Description
+                                        </label>
+                                        <input asp-for="Description" class="form-control"
+                                               placeholder="Enter description" />
+                                        <small class="text-muted">Optional description</small>
+                                    </div>
+                                </div>
+                                <!-- Device Value -->
+                                <div class="form-group">
+                                    <label>
+                                        <i class="fas fa-dollar-sign"></i> Device Value
+                                    </label>
+                                    <input asp-for="DeviceValue" class="form-control"
+                                           placeholder="Enter device value"
+                                           maxlength="100" />
+                                    <small class="text-muted">Optional device value or identifier</small>
+                                    <span asp-validation-for="DeviceValue" class="text-danger"></span>
+                                </div>
+                                <!-- Right Column -->
+                                <div class="form-column">
+                                    <!-- Branch -->
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-store"></i> Branch
+                                        </label>
+                                        <select asp-for="BranchId" class="form-control">
+                                            <option value="">-- Select Branch --</option>
+                                            @if (ViewBag.Branches != null)
+                                            {
+                                                foreach (var branch in ViewBag.Branches)
+                                                {
+                                                    <option value="@branch.id">@branch.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                        <small class="text-muted">Optional branch assignment</small>
+                                    </div>
+
+                                    <!-- Active Status -->
+                                    <div class="form-group checkbox-group">
+                                        <label class="checkbox-container">
+                                            <input asp-for="IsActive" type="checkbox" />
+                                            <span class="checkmark">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                            <span class="checkbox-text">
+                                                <i class="fas fa-power-off"></i> Active Device
+                                            </span>
+                                        </label>
+                                        <small class="text-muted">Inactive devices cannot be used in the system</small>
+                                    </div>
+                                    
+
+                                    <!-- Remark -->
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-comment"></i> Remark
+                                        </label>
+                                        <textarea asp-for="Remark" class="form-control" rows="4"
+                                                  placeholder="Optional notes about this device"></textarea>
+                                        <small class="text-muted">Any additional information</small>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Description -->
-                            <div class="form-group">
-                                <label>
-                                    <i class="fas fa-info-circle"></i> Description
-                                </label>
-                                <input asp-for="Description" class="form-control"
-                                       placeholder="Enter description" />
-                                <small class="text-muted">Optional description</small>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-save">
+                                    <i class="fas fa-save"></i> Update Device
+                                </button>
+                                <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
                             </div>
-                        </div>
-
-                        <!-- Right Column -->
-                        <div class="form-column">
-                            <!-- Branch -->
-                            <div class="form-group">
-                                <label>
-                                    <i class="fas fa-store"></i> Branch
-                                </label>
-                                <select asp-for="BranchId" class="form-control">
-                                    <option value="">-- Select Branch --</option>
-                                    @if (ViewBag.Branches != null)
-                                    {
-                                        foreach (var branch in ViewBag.Branches)
-                                        {
-                                            <option value="@branch.id">@branch.Name</option>
-                                        }
-                                    }
-                                </select>
-                                <small class="text-muted">Optional branch assignment</small>
-                            </div>
-
-                            <!-- Active Status -->
-                            <div class="form-group checkbox-group">
-                                <label class="checkbox-container">
-                                    <input asp-for="IsActive" type="checkbox" />
-                                    <span class="checkmark">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                    <span class="checkbox-text">
-                                        <i class="fas fa-power-off"></i> Active Device
-                                    </span>
-                                </label>
-                                <small class="text-muted">Inactive devices cannot be used in the system</small>
-                            </div>
-
-                            <!-- Remark -->
-                            <div class="form-group">
-                                <label>
-                                    <i class="fas fa-comment"></i> Remark
-                                </label>
-                                <textarea asp-for="Remark" class="form-control" rows="4"
-                                          placeholder="Optional notes about this device"></textarea>
-                                <small class="text-muted">Any additional information</small>
-                            </div>
-                        </div>
+                        </form>
                     </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-save">
-                            <i class="fas fa-save"></i> Update Device
-                        </button>
-                        <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            // Highlight required fields on submit attempt
-            $('form').on('submit', function() {
-                if ($('#CategoryId').val() == '') {
-                    $('#CategoryId').css('border-color', '#dc3545');
-                }
-                if ($('#DeviceName').val() == '') {
-                    $('#DeviceName').css('border-color', '#dc3545');
-                }
-            });
+        @section Scripts {
+            <script>
+                $(document).ready(function() {
+                    // Highlight required fields on submit attempt
+                    $('form').on('submit', function() {
+                        if ($('#CategoryId').val() == '') {
+                            $('#CategoryId').css('border-color', '#dc3545');
+                        }
+                        if ($('#DeviceName').val() == '') {
+                            $('#DeviceName').css('border-color', '#dc3545');
+                        }
+                    });
 
-            // Remove highlight when user selects
-            $('#CategoryId, #DeviceName').on('change input', function() {
-                $(this).css('border-color', '#d0d5dd');
-            });
-        });
-    </script>
-}
+                    // Remove highlight when user selects
+                    $('#CategoryId, #DeviceName').on('change input', function() {
+                        $(this).css('border-color', '#d0d5dd');
+                    });
+                });
+            </script>
+        }

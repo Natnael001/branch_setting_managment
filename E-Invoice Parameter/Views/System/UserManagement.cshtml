@@ -46,7 +46,9 @@
                     <div class="section-header">
                         <i class="fas fa-users"></i>
                         System Users
-                        <span class="selected-branch">(@(users?.Count() ?? 0) users)</span>
+                        <span class="selected-branch">
+                            (@(users?.Where(u => u.IsActive == true).Count() ?? 0) Users)
+                        </span>
                     </div>
 
                     <div class="forms-container">

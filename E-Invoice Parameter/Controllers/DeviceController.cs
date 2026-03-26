@@ -58,8 +58,9 @@ namespace E_Invoice_Parameter.Controllers
 
             // Connection Types - Category "Connection Type"
             ViewBag.ConnectionTypes = await _context.SystemConstants
-                .Where(c => c.Category == "Connection Type" )
+                .Where(c => c.Category == "Connection Type" && c.Id == 1549)
                 .ToListAsync();
+
 
             //// Suppliers - Category "Fiscal Printer Supplier"
             //ViewBag.Suppliers = await _context.SystemConstants
@@ -111,10 +112,11 @@ namespace E_Invoice_Parameter.Controllers
                 var article = await _context.Articles
                     .FirstOrDefaultAsync(a => a.Id == device.Article);
 
+
                 var model = new DeviceDetailsViewModel
                 {
                     Id = device.Id,
-                    DeviceName = device.MachineName.Trim(),
+                    DeviceName = device.MachineName,
                     Category = GetCategoryName(device.Type),
                     ConnectionType = GetConnectionTypeName(device.ConnectionType),
                     Supplier = article?.DefaultSupplier?.ToString() ?? "N/A",
@@ -189,6 +191,7 @@ namespace E_Invoice_Parameter.Controllers
             return category?.Name ?? "Unknown";
         }
 
+
         private string GetBranchName(int? consigneeUnitId)
         {
             if (consigneeUnitId == null) return "Main";
@@ -202,7 +205,7 @@ namespace E_Invoice_Parameter.Controllers
             {
                 LocalCode = model.FixedAssetCode,  // The generated code
                 GslType = 15,  // Device type constant
-                Name = model.DeviceName.Trim(),
+                Name = model.DeviceName,
                 Uom = 1400,  // Default UOM
                 Preference = 1,
                 NeedsUOMConversion = true,
@@ -294,6 +297,7 @@ namespace E_Invoice_Parameter.Controllers
                     Locked = false
                 };
 
+
                 _context.Articles.Add(article);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation($"Article created with ID: {article.Id}");
@@ -302,18 +306,37 @@ namespace E_Invoice_Parameter.Controllers
                 var device = new Device
                 {
                     Article = article.Id,
+                    ConsigneeUnit = model.BranchId,
                     MachineName = model.DeviceName,
                     Type = model.CategoryId,
                     IsActive = model.IsActive,
                     Remark = model.Remark,
                     CreatedOn = DateTime.Now,
-                    LastModified = DateTime.Now
+                    LastModified = DateTime.Now,
+                    DeviceValue = model.DeviceValue,
+                    Preference = 544,
+                    ConnectionType = 1549,
                 };
 
                 _context.Device.Add(device);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation($"Device created with ID: {device.Id}");
 
+            
+
+                var configuration = new Configuration
+                {
+                    Reference = device.Id.ToString(),
+                    Pointer = 731,
+                    ConsigneeUnitId = model.BranchId,
+                    Attribute = "POS Type",
+                    CurrentValue = "E_Invoice_POS",
+                    PreviousValue = null,
+                    Remark = $"Configuration for Device ID: {device.Id}"
+                };
+                _context.Add(configuration);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Device created with ID: {device.Id}");
                 TempData["SuccessMessage"] = $"Device '{device.MachineName}' created successfully!";
                 return RedirectToAction("Index");
             }
@@ -332,10 +355,12 @@ namespace E_Invoice_Parameter.Controllers
                 Article = articleId,  // The Article ID we just created
                 MachineName = model.DeviceName,
                 Type = model.CategoryId,
+                Preference = 544,
+                ConnectionType = 1549,
                 //Description = model.Description,
                 //ConnectionType = model.ConnectionType,
                 //DeviceValue = model.DeviceValue,
-                //ConsigneeUnit = model.BranchId,
+                ConsigneeUnit = model.BranchId,
                 IsActive = model.IsActive,
                 Remark = model.Remark,
                 CreatedOn = DateTime.Now,
@@ -375,13 +400,16 @@ namespace E_Invoice_Parameter.Controllers
                     Id = device.Id,
                     CategoryId = device.Type,
                     DeviceName = device.MachineName,
+                    DeviceValue = device.DeviceValue,
                     FixedAssetCode = article?.LocalCode ?? "N/A",
+
                     ArticleId = device.Article,  // Store Article ID
                     Description = device.Description,
                     BranchId = device.ConsigneeUnit,
                     IsActive = device.IsActive,
                     Remark = device.Remark
                 };
+
 
                 return View("~/Views/System/DeviceEdit.cshtml", model);
             }
@@ -444,9 +472,12 @@ namespace E_Invoice_Parameter.Controllers
                 article.Description = model.Description;
                 article.Remark = model.Remark;
                 article.LastModified = DateTime.Now;
+
                 // Keep LocalCode unchanged
 
                 // UPDATE DEVICE
+
+                device.DeviceValue = model.DeviceValue;
                 device.MachineName = model.DeviceName;
                 device.Type = model.CategoryId;
                 device.Description = model.Description;
@@ -454,7 +485,8 @@ namespace E_Invoice_Parameter.Controllers
                 device.IsActive = model.IsActive;
                 device.Remark = model.Remark;
                 device.LastModified = DateTime.Now;
-
+                device.Preference = 544;
+                device.ConnectionType = 1549;
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Device and Article updated: {DeviceName} by UserId: {UserId}", device.MachineName, userId);
@@ -471,7 +503,19 @@ namespace E_Invoice_Parameter.Controllers
             }
         }
 
+        private string SanitizeInput(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
 
+            // Trim whitespace
+            var sanitized = input.Trim();
+
+
+            // Replace multiple spaces with single space
+            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ");
+
+            return sanitized;
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -482,17 +526,49 @@ namespace E_Invoice_Parameter.Controllers
 
             try
             {
+                // Fetch device
                 var device = await _context.Device.FindAsync(id);
                 if (device == null)
                 {
                     return Json(new { success = false, message = "Device not found." });
                 }
 
-                _context.Device.Remove(device);
-                await _context.SaveChangesAsync();
+                // Fetch configuration by reference (use id.ToString() if Reference is string)
+                var reference = id.ToString();
+                var configurationToDelete = await _context.Configurations
+                    .FirstOrDefaultAsync(c => c.Reference == reference);
 
-                _logger.LogInformation("Device deleted: {DeviceName} by UserId: {UserId}", device.MachineName, userId);
-                return Json(new { success = true, message = "Device deleted successfully!" });
+                // Use a transaction to ensure consistency
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Delete configuration first if it exists (to avoid FK violations)
+                    if (configurationToDelete != null)
+                    {
+                        _context.Configurations.Remove(configurationToDelete);
+                    }
+
+                    // Delete device
+                    _context.Device.Remove(device);
+
+                    // Save changes and commit transaction
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Device deleted: {DeviceName} by UserId: {UserId}", device.MachineName, userId);
+                    return Json(new { success = true, message = "Device deleted successfully!" });
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw; // Re-throw to be caught by outer catch
+                }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Handle foreign key or other database-specific errors
+                _logger.LogError(dbEx, "Database error deleting device {Id}", id);
+                return Json(new { success = false, message = "Database error: " + dbEx.Message });
             }
             catch (Exception ex)
             {
@@ -539,7 +615,7 @@ namespace E_Invoice_Parameter.Controllers
             }
         }
 
-  
+
         private string GetConnectionTypeName(int? connectionTypeId)
         {
             if (connectionTypeId == null) return "N/A";
@@ -558,6 +634,7 @@ namespace E_Invoice_Parameter.Controllers
         }
     }
 
+
     public class DeviceCreationViewModel
     {
         public int Id { get; set; }
@@ -571,8 +648,10 @@ namespace E_Invoice_Parameter.Controllers
         [RegularExpression(@"^[a-zA-Z0-9\s\-_]+$", ErrorMessage = "Device name can only contain letters, numbers, spaces, hyphens, and underscores")]
         public string DeviceName { get; set; }
 
+
         public string FixedAssetCode { get; set; }
-        public string Model_two { get; set; }
+        //public string Model_two { get; set; }
+        //  public int ConnectionTypes { get; set; }
 
         public int ArticleId { get; set; }
 
@@ -582,26 +661,15 @@ namespace E_Invoice_Parameter.Controllers
 
         [Range(1, int.MaxValue, ErrorMessage = "Please select a valid branch")]
         public int? BranchId { get; set; }
-
+        // NEW: Device Value field
+        [StringLength(100, ErrorMessage = "Device value cannot exceed 100 characters")]
+        [RegularExpression(@"^[a-zA-Z0-9\s\-_,.()]+$", ErrorMessage = "Device value contains invalid characters")]
+        public string? DeviceValue { get; set; }
         public bool IsActive { get; set; } = true;
 
         [StringLength(500, ErrorMessage = "Remark cannot exceed 500 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s\-_,.():;""']+$", ErrorMessage = "Remark contains invalid characters")]
         public string? Remark { get; set; }
-    }
-
-    public class DeviceListViewModel
-    {
-        public int Id { get; set; }
-        public string DeviceName { get; set; }
-        public string Category { get; set; }  
-        public string Model { get; set; }
-        public string FixedAssetCode { get; set; }
-        public string DeviceValue { get; set; }
-        public string SerialNumber { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string BranchName { get; set; }
     }
 
     public class DeviceDetailsViewModel
@@ -622,4 +690,18 @@ namespace E_Invoice_Parameter.Controllers
         public DateTime? ModifiedAt { get; set; }
         public string BranchName { get; set; }
     }
+    public class DeviceListViewModel
+    {
+        public int Id { get; set; }
+        public string DeviceName { get; set; }
+        public string Category { get; set; }
+        public string Model { get; set; }
+        public string FixedAssetCode { get; set; }
+        public string DeviceValue { get; set; }
+        public string SerialNumber { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string BranchName { get; set; }
+    }
+
 }

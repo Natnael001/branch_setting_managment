@@ -81,9 +81,10 @@
                                 <input asp-for="Description" class="form-control"
                                        placeholder="Enter description" />
                             </div> *@
+                            
 
-                            <!-- Model -->
-                            <div class="form-group">
+                                    <!-- Model -->
+                                    @* <div class="form-group">
                                 <label>Model</label>
                                 <select asp-for="Model_two" class="form-control">
                                     <option value="">-- Select Model --</option>
@@ -95,12 +96,12 @@
                                         }
                                     }
                                 </select>
-                            </div>
-                        </div>
+                            </div> *@
+                                </div>
 
-                        <div class="form-column">
-                            <!-- Supplier -->
-                            @* <div class="form-group">
+                                <div class="form-column">
+                                    <!-- Supplier -->
+                                    @* <div class="form-group">
                                 <label>Supplier</label>
                                 <select asp-for="SupplierId" class="form-control">
                                     <option value="">-- Select Supplier --</option>
@@ -114,10 +115,10 @@
                                 </select>
                             </div> *@
 
-                            <!-- Connection Type -->
-                            @* <div class="form-group">
+                                    <!-- Connection Type -->
+                                    @* <div class="form-group">
                                 <label>Connection Type</label>
-                                <select asp-for="ConnectionType" class="form-control">
+                                <select asp-for="ConnectionTypes" class="form-control">
                                     <option value="">-- Select Connection Type --</option>
                                     @if (ViewBag.ConnectionTypes != null)
                                     {
@@ -129,8 +130,8 @@
                                 </select>
                             </div> *@
 
-                            <!-- Device Value -->
-                            @* <div class="form-group">
+                                    <!-- Device Value -->
+                                    @* <div class="form-group">
                                 <label>Device Value</label>
                                 <div style="display: flex; gap: 10px;">
                                     <select id="DevicePrefix" class="form-control" style="width: 40%;">
@@ -149,63 +150,74 @@
                               ///  <input type="hidden"  />
                                 <small>Format: Prefix + Code</small>
                             </div> *@
+                            
 
-                            <!-- Branch -->
-                            <div class="form-group">
-                                <label>Branch</label>
-                                <select asp-for="BranchId" class="form-control">
-                                    <option value="">-- Select Branch --</option>
-                                    @if (ViewBag.Branches != null)
-                                    {
-                                        foreach (var branch in ViewBag.Branches)
-                                        {
-                                            <option value="@branch.id">@branch.Name</option>
-                                        }
-                                    }
-                                </select>
+                                    <!-- Branch -->
+                                    <div class="form-group">
+                                        <label>Branch</label>
+                                        <select asp-for="BranchId" class="form-control">
+                                            <option value="">-- Select Branch --</option>
+                                            @if (ViewBag.Branches != null)
+                                            {
+                                                foreach (var branch in ViewBag.Branches)
+                                                {
+                                                    <option value="@branch.id">@branch.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <!-- Device Value -->
+                                    <div class="form-group">
+                                        <label>
+                                            <i class="fas fa-dollar-sign"></i> Device Value
+                                        </label>
+                                        <input asp-for="DeviceValue" class="form-control"
+                                               placeholder="Enter device value (e.g., 1000.00, POS-001, etc.)"
+                                               maxlength="100" />
+                                        <small class="text-muted">Optional device value or identifier</small>
+                                        <span asp-validation-for="DeviceValue" class="text-danger"></span>
+                                    </div>
+                                    <!-- Active -->
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-container">
+                                            <input asp-for="IsActive" type="checkbox" />
+                                            <span class="checkmark"><i class="fas fa-check"></i></span>
+                                            <span>Active Device</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Remark -->
+                                    <div class="form-group">
+                                        <label>Remark</label>
+                                        <textarea asp-for="Remark" class="form-control" rows="2"
+                                                  placeholder="Optional notes"></textarea>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Active -->
-                            <div class="checkbox-group">
-                                <label class="checkbox-container">
-                                    <input asp-for="IsActive" type="checkbox" />
-                                    <span class="checkmark"><i class="fas fa-check"></i></span>
-                                    <span>Active Device</span>
-                                </label>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-save">
+                                    <i class="fas fa-save"></i> Save Device
+                                </button>
+                                <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
+                                    Cancel
+                                </a>
                             </div>
-
-                            <!-- Remark -->
-                            <div class="form-group">
-                                <label>Remark</label>
-                                <textarea asp-for="Remark" class="form-control" rows="2"
-                                          placeholder="Optional notes"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-save">
-                            <i class="fas fa-save"></i> Save Device
-                        </button>
-                        <a href="@Url.Action("Index", "Device")" class="btn btn-cancel">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
+                        </form>
 
             
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-@section Scripts {
-    <script>
-        // Device Value concatenation
-        $('#DevicePrefix, #DeviceValueCode').on('change input', function() {
-            var prefix = $('#DevicePrefix').val() || '';
-            var code = $('#DeviceValueCode').val() || '';
-            $('#DeviceValue').val(prefix + code);
-        });
-    </script>
-}
+        @section Scripts {
+            <script>
+                // Device Value concatenation
+                $('#DevicePrefix, #DeviceValueCode').on('change input', function() {
+                    var prefix = $('#DevicePrefix').val() || '';
+                    var code = $('#DeviceValueCode').val() || '';
+                    $('#DeviceValue').val(prefix + code);
+                });
+            </script>
+        }
