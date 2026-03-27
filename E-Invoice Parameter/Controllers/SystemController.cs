@@ -390,7 +390,7 @@ public class SystemController : Controller
                 {
                     success = false,
                     verified = false,
-                    message = "TIN is not eligible for verification (not a company)"
+                    message = "TIN is not eligible for verification"
                 });
             }
 

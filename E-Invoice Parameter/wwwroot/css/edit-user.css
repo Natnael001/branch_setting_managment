@@ -1,5 +1,8 @@
 ﻿/* Edit User Specific Styles */
-
+.main-content {
+    display: flex;
+    min-height: calc(100vh - 160px);
+}
 .container {
     width: 100%;
     max-width: 1000px;

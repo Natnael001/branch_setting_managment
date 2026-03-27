@@ -1,5 +1,8 @@
 ﻿/* device-form.css - Matching system parameters design */
-
+.main-content {
+    display: flex;
+    min-height: calc(100vh - 160px);
+}
 .container {
     width: 100%;
     max-width: none;

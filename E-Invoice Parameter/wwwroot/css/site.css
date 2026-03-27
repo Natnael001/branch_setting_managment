@@ -1,4 +1,18 @@
 /*site.css*/
+
+ main > .container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+ }
+
+main {
+    background: red;
+}
+
+footer {
+    background: blue;
+}
 .branch-settings-form {
     display: flex;
     flex-direction: column;
@@ -174,10 +188,8 @@ html, body {
 }
 
 body {
-    background: #f0f2f5;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
 }
 
 /* Header styling */
@@ -268,11 +280,14 @@ body {
         color: #e65c00;
     }
 
-/* Main content - no gaps */
+main > * {
+    flex-shrink: 0;
+}
+
 main {
     flex: 1;
-    padding: 0 !important;
-    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Remove all Bootstrap container default spacing */

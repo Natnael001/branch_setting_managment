@@ -3,7 +3,10 @@
     margin: 0;
     font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
 }
-
+.main-content {
+    display: flex;
+    min-height: calc(100vh - 160px);
+}
 
 .btn {
     padding: 8px 25px;
