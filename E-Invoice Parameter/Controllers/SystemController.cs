@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+
 
 public class LoginModel
 {
@@ -217,7 +219,9 @@ public class SystemController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("login_limit")] // A04-2
     public async Task<IActionResult> Login([FromBody] LoginModel model)
+
     {
         try
         {
@@ -305,8 +309,9 @@ public class SystemController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Login error");
-            return Json(new { success = false, message = $"CRASH: {ex.Message}" });
+            return Json(new { success = false, message = "An error occurred during login. Please try again later." }); // Sanity: A05-5
         }
+
     }
 
 
@@ -344,7 +349,9 @@ public class SystemController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [EnableRateLimiting("login_limit")] // A04-1
     public IActionResult VerifyTin(string tin)
+
     {
         try
         {
