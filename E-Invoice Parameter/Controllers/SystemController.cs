@@ -33,7 +33,6 @@ public class SystemController : Controller
         _configuration = configuration;
     }
 
-
     private bool IsCurrentUserAdmin()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -47,7 +46,8 @@ public class SystemController : Controller
                       urm => urm.RoleId,
                       role => role.id,
                       (urm, role) => new { urm.ExpiryDate, role.Name })
-                .Any(r => r.Name == "Administrator" && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
+                .Any(r => (r.Name == "Administrator" || r.Name == "Cnet Admin")
+                          && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
         }
         catch (Exception ex)
         {
@@ -55,29 +55,6 @@ public class SystemController : Controller
             return false;
         }
     }
-
-    private bool IsCurrentUserSystemAdmin()
-    {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return false;
-
-        try
-        {
-            return _context.UserRoleMappers
-                .Where(urm => urm.UserId == userId)
-                .Join(_context.ConsigneeUnits,
-                      urm => urm.RoleId,
-                      role => role.id,
-                      (urm, role) => new { urm.ExpiryDate, role.Name })
-                .Any(r => r.Name == "System Administrator" && (r.ExpiryDate == null || r.ExpiryDate > DateTime.Now));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Admin check failed for user {UserId}", userId);
-            return false;
-        }
-    }
-
 
     [HttpGet]
     public IActionResult DeviceManagement()
@@ -171,16 +148,13 @@ public class SystemController : Controller
 
        
         bool isAdmin = IsCurrentUserAdmin();
-        bool isSystemAdmin = IsCurrentUserSystemAdmin();
 
         ViewBag.Tin = tin;
         ViewBag.IsAdmin = isAdmin;
-        ViewBag.IsSystemAdmin = isSystemAdmin;
 
 
         return View();
     }
-
 
 
     public IActionResult ParametersWithTin(string tin)
@@ -240,7 +214,7 @@ public class SystemController : Controller
                 return Json(new { success = false, message = "Invalid username or password." });
             }
 
-            var allowedRoles = new[] { "System Administrator", "Administrator" };
+            var allowedRoles = new[] { "System Administrator", "Administrator", "Cnet Admin" };
 
             var hasAllowedRole = await _context.UserRoleMappers
                 .Where(urm => urm.UserId == user.Id)
