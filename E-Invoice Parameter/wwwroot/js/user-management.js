@@ -24,14 +24,33 @@ function toggleUserStatus(userId) {
         });
 }
 
-// Auto-hide alerts after 5 seconds
-document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () {
-        var alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function (alert) {
-            alert.style.transition = 'opacity 0.5s';
-            alert.style.opacity = '0';
-            setTimeout(() => alert.style.display = 'none', 500);
-        });
-    }, 5000);
-});
+function filterUsers(input) {
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('usersTable');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const usernameCell = row.cells[0];
+        const employeeCell = row.cells[1];
+        const rolesCell = row.cells[2];
+
+        const username = usernameCell?.innerText.toLowerCase() || '';
+        const employee = employeeCell?.innerText.toLowerCase() || '';
+        const roles = rolesCell?.innerText.toLowerCase() || '';
+
+        if (username.includes(filter) || employee.includes(filter) || roles.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function clearUserFilter() {
+    const filterInput = document.getElementById('userFilter');
+    if (filterInput) {
+        filterInput.value = '';
+        filterUsers(filterInput);
+    }
+}

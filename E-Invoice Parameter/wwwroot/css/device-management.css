@@ -407,3 +407,69 @@ body {
         flex-wrap: wrap;
     }
 }
+
+
+
+.device-filter {
+    padding: 0 0 20px 0;
+    background: white;
+}
+
+    .device-filter .filter-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        font-size: 14px;
+        outline: none;
+        background: white;
+        transition: all 0.2s;
+    }
+
+        .device-filter .filter-input:focus {
+            border-color: #e65c00;
+            box-shadow: 0 0 0 3px rgba(230, 92, 0, 0.1);
+        }
+
+        .device-filter .filter-input::placeholder {
+            color: #9aa6b5;
+        }
+
+    .device-filter .btn-clear {
+        padding: 0 12px;
+        background: #f8fafd;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #e65c00;
+    }
+
+        .device-filter .btn-clear:hover {
+            background: #f0f3f8;
+            transform: translateY(-1px);
+        }
+
+    .device-filter .btn-clear {
+        padding: 0 12px;
+        background: #f8fafd;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        width: 42px;
+        box-sizing: border-box;
+    }
+
+.filter-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}

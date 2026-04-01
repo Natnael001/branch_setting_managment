@@ -1,5 +1,4 @@
 ﻿// device-management.js
-
 function toggleDeviceStatus(id) {
     if (!confirm('Are you sure you want to toggle the status of this device?')) {
         return;
@@ -96,4 +95,34 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+}
+
+
+function filterDevices(input) {
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('deviceTable');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const deviceNameCell = row.cells[0];
+        const categoryCell = row.cells[1];
+
+        const deviceName = deviceNameCell?.innerText.toLowerCase() || '';
+        const category = categoryCell?.innerText.toLowerCase() || '';
+
+        if (deviceName.includes(filter) || category.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function clearDeviceFilter() {
+    const filterInput = document.getElementById('deviceFilter');
+    if (filterInput) {
+        filterInput.value = '';
+        filterDevices(filterInput);
+    }
 }

@@ -1,4 +1,4 @@
-﻿/* user-management.css - Aligned with device management UI */
+﻿/* user-management.css */
 .main-content {
     display: flex;
     min-height: calc(100vh - 160px);
@@ -201,13 +201,12 @@ body {
     overflow-x: auto;
 }
 
-/* Table styling – matches device table */
-.device-table {
+.user-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-    .device-table thead th {
+    .user-table thead th {
         text-align: left;
         padding: 12px;
         background: #f8fafd;
@@ -219,7 +218,7 @@ body {
         letter-spacing: 0.5px;
     }
 
-    .device-table tbody td {
+    .user-table tbody td {
         padding: 12px;
         border-bottom: 1px solid #eef2f6;
         color: #495569;
@@ -227,7 +226,7 @@ body {
         vertical-align: middle;
     }
 
-    .device-table tbody tr:hover {
+    .user-table tbody tr:hover {
         background: #f8fafd;
     }
 
@@ -374,7 +373,7 @@ body {
     .forms-section {
         width: 100%;
     }
-}
+}user-table
 
 @media screen and (max-width: 768px) {
     .container {
@@ -396,8 +395,8 @@ body {
         padding: 15px;
     }
 
-    .device-table thead th,
-    .device-table tbody td {
+    .user-table thead th,
+    .user-table tbody td {
         padding: 8px;
         font-size: 12px;
     }
@@ -405,4 +404,69 @@ body {
     .action-buttons {
         flex-wrap: wrap;
     }
+}
+
+
+
+.user-filter {
+    padding: 0 0 20px 0;
+    background: white;
+}
+
+    .user-filter .filter-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        font-size: 14px;
+        outline: none;
+        background: white;
+        transition: all 0.2s;
+    }
+
+        .user-filter .filter-input:focus {
+            border-color: #e65c00;
+            box-shadow: 0 0 0 3px rgba(230, 92, 0, 0.1);
+        }
+
+        .user-filter .filter-input::placeholder {
+            color: #9aa6b5;
+        }
+
+    .user-filter .btn-clear {
+        padding: 0 12px;
+        background: #f8fafd;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #e65c00;
+    }
+
+        .user-filter .btn-clear:hover {
+            background: #f0f3f8;
+            transform: translateY(-1px);
+        }
+
+    .user-filter .btn-clear {
+        padding: 0 12px;
+        background: #f8fafd;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        width: 42px;
+        box-sizing: border-box;
+    }
+.filter-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
 }

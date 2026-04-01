@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Device Management";
 }
-
+<!DOCTYPE html>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/device-management.css" asp-append-version="true">
@@ -50,10 +50,18 @@
             </div>
 
             <div class="forms-container">
+                        <div class="device-filter">
+                            <div class="filter-group">
+                                <input type="text" class="filter-input" id="deviceFilter" placeholder="Filter device by name or Category..." onkeyup="filterDevices(this)">
+                                <button class="btn-clear" onclick="clearDeviceFilter()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
                 @if (Model != null && Model.Any())
                 {
                     <div class="table-responsive">
-                        <table class="device-table">
+                                <table class="device-table" id="deviceTable">
                             <thead>
                                 <tr>
                                     <th>Device Name</th>
