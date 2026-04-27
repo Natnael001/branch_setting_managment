@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 // Suppress Server Header
 builder.WebHost.ConfigureKestrel(options =>
 {

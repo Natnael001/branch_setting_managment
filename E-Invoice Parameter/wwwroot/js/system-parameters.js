@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function loadBranches(tin) {
-    console.log('Loading branches for TIN:', tin);
 
     let branchList = document.getElementById("branchList");
     if (!branchList) {
@@ -76,7 +75,6 @@ function loadBranches(tin) {
 }
 
 function loadBranchSettings(branchId) {
-    console.log('Loading settings for branch ID:', branchId);
 
     let loader = document.getElementById("settingsLoader");
     let body = document.getElementById("settingsBody");
@@ -136,12 +134,10 @@ function saveSettings() {
     // Append files if selected
     if (certFile && certFile.files && certFile.files[0]) {
         formData.append('DigitalCertificate', certFile.files[0]);
-        console.log('Certificate file attached:', certFile.files[0].name);
     }
 
     if (keyFile && keyFile.files && keyFile.files[0]) {
         formData.append('PrivateKey', keyFile.files[0]);
-        console.log('Private key file attached:', keyFile.files[0].name);
     }
 
     let token = document.getElementById('RequestVerificationToken')?.value;
@@ -195,7 +191,6 @@ function saveSettings() {
 }
 
 function selectBranch(element, branchName, branchId) {
-    console.log('Selecting branch:', branchName, 'ID:', branchId);
 
     document.querySelectorAll(".branch-item").forEach(item => {
         item.classList.remove("active");
@@ -273,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (certFile) {
         certFile.addEventListener('change', function () {
             if (this.files && this.files[0]) {
-                console.log('Certificate selected:', this.files[0].name);
                 if (typeof formChanged !== 'undefined') formChanged = true;
             }
         });
@@ -283,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (keyFile) {
         keyFile.addEventListener('change', function () {
             if (this.files && this.files[0]) {
-                console.log('Private key selected:', this.files[0].name);
                 if (typeof formChanged !== 'undefined') formChanged = true;
             }
         });

@@ -481,8 +481,8 @@ public class SystemController : Controller
                 BranchId = branchId,
                 SourceNumber = GetValue("Source Number"),
                 ClientId = GetValue("Client ID"),
-                ClientSecret = GetValue("Client Secret"),
-                ApiKey = GetValue("API Key"),
+                ClientSecret = "",   // DO NOT send the secret
+                ApiKey = "",         // DO NOT send the API key
                 DigitalCertificatePath = GetValue("Digital Certificate Path"),
                 PrivateKeyPath = GetValue("Private Key Path")
             };
@@ -504,6 +504,26 @@ public class SystemController : Controller
             if (model == null || model.BranchId <= 0)
                 return Json(new { success = false, message = "Invalid branch data." });
 
+            if (string.IsNullOrWhiteSpace(model.SourceNumber))
+                return Json(new { success = false, message = "Source Number is required." });
+            if (model.SourceNumber.Length > 10)
+                return Json(new { success = false, message = "Source Number cannot exceed 10 characters." });
+            if (!System.Text.RegularExpressions.Regex.IsMatch(model.SourceNumber, @"^[a-zA-Z0-9]+$"))
+                return Json(new { success = false, message = "Source Number can only contain letters and numbers." });
+
+            if (string.IsNullOrWhiteSpace(model.ClientId))
+                return Json(new { success = false, message = "Client ID is required." });
+            if (model.ClientId.Length > 50)
+                return Json(new { success = false, message = "Client ID cannot exceed 50 characters." });
+            if (!System.Text.RegularExpressions.Regex.IsMatch(model.ClientId, @"^[a-zA-Z0-9\-_]+$"))
+                return Json(new { success = false, message = "Client ID can only contain letters, numbers, hyphens and underscores." });
+
+            if (!string.IsNullOrWhiteSpace(model.ClientSecret) && model.ClientSecret.Length < 6)
+                return Json(new { success = false, message = "Client Secret must be at least 6 characters." });
+
+            if (!string.IsNullOrWhiteSpace(model.ApiKey) && model.ApiKey.Length < 10)
+                return Json(new { success = false, message = "API Key must be at least 10 characters." });
+
             const int pointer = 992;
             const string reference = "Company";
 
@@ -518,8 +538,6 @@ public class SystemController : Controller
             if (string.IsNullOrEmpty(tin))
                 return Json(new { success = false, message = "Company TIN not found in session." });
 
-
-            //debug
             string testPath = $"{ftpBaseUrl}/test_{Guid.NewGuid()}.txt";
             byte[] testData = System.Text.Encoding.UTF8.GetBytes("test");
             using (var ms = new MemoryStream(testData))
@@ -527,8 +545,6 @@ public class SystemController : Controller
                 bool uploaded = await _ftpHelper.UploadFileAsync(testPath, ms);
                 if (uploaded) await _ftpHelper.DeleteFileAsync(testPath);
             }
-
-
 
             string relativePath = $"{tin}/GslProfile/{model.BranchId}/DigitalCertificate";
             string fullFtpBase = $"{ftpBaseUrl}/{relativePath}";
@@ -602,12 +618,10 @@ public class SystemController : Controller
             }
 
             var textAttributes = new Dictionary<string, string>
-            {
-                { "Source Number", model.SourceNumber },
-                { "Client ID", model.ClientId },
-                { "Client Secret", model.ClientSecret },
-                { "API Key", model.ApiKey }
-            };
+        {
+            { "Source Number", model.SourceNumber },
+            { "Client ID", model.ClientId },        
+        };
 
             foreach (var attr in textAttributes)
             {
@@ -640,6 +654,60 @@ public class SystemController : Controller
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(model.ClientSecret))
+            {
+                var existingSecret = _context.Configurations
+                    .FirstOrDefault(c => c.Pointer == pointer &&
+                                         c.Reference == reference &&
+                                         c.ConsigneeUnitId == model.BranchId &&
+                                         c.Attribute == "Client Secret");
+                if (existingSecret != null)
+                {
+                    existingSecret.PreviousValue = existingSecret.CurrentValue;
+                    existingSecret.CurrentValue = model.ClientSecret;
+                }
+                else
+                {
+                    _context.Configurations.Add(new Configuration
+                    {
+                        Pointer = pointer,
+                        Reference = reference,
+                        ConsigneeUnitId = model.BranchId,
+                        Attribute = "Client Secret",
+                        CurrentValue = model.ClientSecret,
+                        PreviousValue = model.ClientSecret,
+                        Remark = null
+                    });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.ApiKey))
+            {
+                var existingKey = _context.Configurations
+                    .FirstOrDefault(c => c.Pointer == pointer &&
+                                         c.Reference == reference &&
+                                         c.ConsigneeUnitId == model.BranchId &&
+                                         c.Attribute == "API Key");
+                if (existingKey != null)
+                {
+                    existingKey.PreviousValue = existingKey.CurrentValue;
+                    existingKey.CurrentValue = model.ApiKey;
+                }
+                else
+                {
+                    _context.Configurations.Add(new Configuration
+                    {
+                        Pointer = pointer,
+                        Reference = reference,
+                        ConsigneeUnitId = model.BranchId,
+                        Attribute = "API Key",
+                        CurrentValue = model.ApiKey,
+                        PreviousValue = model.ApiKey,
+                        Remark = null
+                    });
+                }
+            }
+
             if (!string.IsNullOrEmpty(digitalCertPath))
             {
                 var existingCert = _context.Configurations
@@ -650,7 +718,6 @@ public class SystemController : Controller
 
                 if (existingCert != null)
                 {
-                    // Delete old file from FTP
                     if (!string.IsNullOrEmpty(existingCert.CurrentValue))
                     {
                         string oldRemotePath = $"{ftpBaseUrl}/{existingCert.CurrentValue}";
@@ -686,7 +753,6 @@ public class SystemController : Controller
 
                 if (existingKey != null)
                 {
-                    // Delete old file from FTP
                     if (!string.IsNullOrEmpty(existingKey.CurrentValue))
                     {
                         string oldRemotePath = $"{ftpBaseUrl}/{existingKey.CurrentValue}";
