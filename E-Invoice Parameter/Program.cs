@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Suppress Server Header
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -63,13 +62,26 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
 
+builder.Services.AddHostFiltering(options =>
+{
+    options.AllowedHosts = new[]
+    {
+        "system-parameter.rms-clouderp.com.et",
+        "system-parameter2.rms-clouderp.com.et",
+        "localhost",
+        "127.0.0.1"
+    };
+});
+
 var app = builder.Build();
 
-// Forwarded headers must be the first middleware
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
+
+
+app.UseHostFiltering();
 
 if (!app.Environment.IsDevelopment())
 {
