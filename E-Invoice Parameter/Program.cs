@@ -64,13 +64,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHostFiltering(options =>
 {
-    options.AllowedHosts = new[]
-    {
-        "system-parameter.rms-clouderp.com.et",
-        "system-parameter2.rms-clouderp.com.et",
-        "localhost",
-        "127.0.0.1"
-    };
+    var allowedHosts = builder.Configuration.GetSection("AllowedHosts").Get<string[]>();
+    options.AllowedHosts = allowedHosts ?? Array.Empty<string>();
 });
 
 var app = builder.Build();
